@@ -81,6 +81,25 @@ if __name__ == "__main__":
     print("\n===== HOAN THANH =====")
 
 
+# Thống kê 1 cấp
+ket_qua = tuyen_duong_service.thong_ke_theo_cap_quan_ly("QL")
+
+# Thống kê 1 cấp
+#ket_qua = tuyen_duong_service.thong_ke_theo_cap_quan_ly("tl")
+
+# Thống kê nhiều cấp
+#ket_qua = tuyen_duong_service.thong_ke_theo_cap_quan_ly(["QL", "DT"])
+
+# In kết quả
+for cap in ket_qua:
+    print(f"\n{cap['ma_cap']} - {cap['ten_cap']}")
+    print(f"  Số tuyến        : {cap['so_tuyen']}")
+    print(f"  CD quản lý      : {cap['tong_chieu_dai_quan_ly']} km")
+    print(f"  CD thực tế      : {cap['tong_chieu_dai_thuc_te']} km")
+    for tuyen in cap['ds_tuyen']:
+        print(f"    - {tuyen}")
+print(tuyen_duong_service.lay_theo_ma("QL279"))
+
 
 
 

@@ -147,3 +147,85 @@ def cap_nhat_chieu_dai_tuyen(tuyen_id):
     """, (tong_chieu_dai, tuyen_id))
     conn.commit()
     conn.close()
+
+
+# ================= THỐNG KÊ THEO CẤP QUẢN LÝ =================
+def thong_ke_theo_cap_quan_ly(ds_ma_cap: list):
+    """
+    Thống kê tuyến đường theo một hoặc nhiều mã cấp quản lý.
+
+    Args:
+        ds_ma_cap: list mã cấp, ví dụ ["QL"] hoặc ["QL", "DT"]
+
+    Returns:
+        list[dict] - mỗi phần tử gồm:
+            ma_cap, ten_cap, so_tuyen,
+            tong_chieu_dai_quan_ly, tong_chieu_dai_thuc_te,
+            ds_tuyen (list TuyenDuong)
+    """
+    if not ds_ma_cap:
+        return []
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    placeholders = ",".join("?" * len(ds_ma_cap))
+
+    # --- Tổng hợp theo cấp ---
+    cursor.execute(f"""
+        SELECT
+            cql.id,
+            cql.ma_cap,
+            cql.ten_cap,
+            COUNT(t.id)                             AS so_tuyen,
+            COALESCE(SUM(t.chieu_dai_quan_ly), 0)   AS tong_quan_ly,
+            COALESCE(SUM(t.chieu_dai_thuc_te), 0)   AS tong_thuc_te
+        FROM cap_quan_ly cql
+        LEFT JOIN tuyen_duong t ON t.cap_quan_ly_id = cql.id
+        WHERE cql.ma_cap IN ({placeholders})
+          AND cql.is_active = 1
+        GROUP BY cql.id, cql.ma_cap, cql.ten_cap
+        ORDER BY cql.thu_tu_hien_thi
+    """, ds_ma_cap)
+
+    rows_cap = cursor.fetchall()
+
+    # --- Lấy danh sách tuyến chi tiết (dùng t. prefix để tránh ambiguous) ---
+    cursor.execute(f"""
+        SELECT
+            t.id, t.ma_tuyen, t.ten_tuyen,
+            t.cap_quan_ly_id, t.don_vi_quan_ly_id,
+            t.diem_dau, t.diem_cuoi,
+            t.lat_dau, t.lng_dau, t.lat_cuoi, t.lng_cuoi,
+            t.chieu_dai, t.chieu_dai_thuc_te, t.chieu_dai_quan_ly,
+            t.nam_xay_dung, t.nam_hoan_thanh,
+            t.ghi_chu, t.created_at
+        FROM tuyen_duong t
+        JOIN cap_quan_ly cql ON cql.id = t.cap_quan_ly_id
+        WHERE cql.ma_cap IN ({placeholders})
+        ORDER BY cql.thu_tu_hien_thi, t.ma_tuyen
+    """, ds_ma_cap)
+
+    rows_tuyen = cursor.fetchall()
+    conn.close()
+
+    # --- Map tuyen theo cap_quan_ly_id ---
+    from collections import defaultdict
+    map_tuyen = defaultdict(list)
+    for row in rows_tuyen:
+        tuyen = _row_to_object(row)
+        map_tuyen[tuyen.cap_quan_ly_id].append(tuyen)
+
+    # --- Ghép kết quả ---
+    ket_qua = []
+    for row in rows_cap:
+        cap_id, ma_cap, ten_cap, so_tuyen, tong_quan_ly, tong_thuc_te = row
+        ket_qua.append({
+            "ma_cap":                   ma_cap,
+            "ten_cap":                  ten_cap,
+            "so_tuyen":                 so_tuyen,
+            "tong_chieu_dai_quan_ly":   round(tong_quan_ly, 2),
+            "tong_chieu_dai_thuc_te":   round(tong_thuc_te, 2),
+            "ds_tuyen":                 map_tuyen[cap_id]
+        })
+
+    return ket_qua

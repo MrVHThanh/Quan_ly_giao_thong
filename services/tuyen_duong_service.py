@@ -44,3 +44,30 @@ def get_or_create_tuyen_duong(tuyen: TuyenDuong):
     if existing:
         return existing
     return them_tuyen_duong(tuyen)
+
+# ================= THONG KE THEO CAP QUAN LY =================
+def thong_ke_theo_cap_quan_ly(ds_ma_cap):
+    """
+    Thống kê tuyến đường theo một hoặc nhiều mã cấp quản lý.
+
+    Args:
+        ds_ma_cap (str | list): Một mã hoặc list mã cấp.
+                                Ví dụ: "QL" hoặc ["QL", "DT"]
+
+    Returns:
+        list[dict] với các key:
+            ma_cap, ten_cap, so_tuyen,
+            tong_chieu_dai_quan_ly, tong_chieu_dai_thuc_te,
+            ds_tuyen
+
+    Raises:
+        ValueError: Nếu ds_ma_cap rỗng.
+    """
+    # Chuẩn hóa: cho phép truyền string đơn hoặc list
+    if isinstance(ds_ma_cap, str):
+        ds_ma_cap = [ds_ma_cap]
+
+    if not ds_ma_cap:
+        raise ValueError("Phai truyen it nhat mot ma cap quan ly!")
+
+    return repo.thong_ke_theo_cap_quan_ly(ds_ma_cap)

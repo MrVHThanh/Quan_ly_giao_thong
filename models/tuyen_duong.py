@@ -54,7 +54,7 @@ class TuyenDuong:
         if self.lat_cuoi is None or self.lng_cuoi is None:
             return None
         return [self.lat_cuoi, self.lng_cuoi]
-
+    '''
     def __repr__(self):
         chieu_dai_str = f"{self.chieu_dai:.2f}km"         if self.chieu_dai         else "N/A"
         thuc_te_str   = f"{self.chieu_dai_thuc_te:.2f}km" if self.chieu_dai_thuc_te else "N/A"
@@ -64,3 +64,13 @@ class TuyenDuong:
             f"| Tổng: {chieu_dai_str} | Thực tế: {thuc_te_str} | Quản lý: {quan_ly_str} "
             f"| {self.diem_dau or '?'} → {self.diem_cuoi or '?'}"
         )
+    '''
+    def __repr__(self):
+        chieu_dai_str = f"{self.chieu_dai:.2f}km"         if self.chieu_dai         else "N/A"
+        thuc_te_str   = f"{self.chieu_dai_thuc_te:.2f}km" if self.chieu_dai_thuc_te else "N/A"
+        quan_ly_str   = f"{self.chieu_dai_quan_ly:.2f}km" if self.chieu_dai_quan_ly else "N/A"
+        return (
+            f"{self.ma_tuyen} - {self.ten_tuyen} "
+            f"| Tổng: {chieu_dai_str} | Chiều dài quản lý: {quan_ly_str} "
+            #f"| {self.diem_dau or '?'} → {self.diem_cuoi or '?'}"
+            )
