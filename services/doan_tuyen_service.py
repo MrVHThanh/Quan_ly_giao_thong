@@ -2,14 +2,13 @@ from models.doan_tuyen import DoanTuyen
 from services.tuyen_duong_service import lay_theo_id as lay_tuyen
 from services.tuyen_duong_service import cap_nhat_chieu_dai_tuyen
 from services.cap_duong_service import lay_theo_id_hoat_dong as lay_cap
+from services.tinh_trang_service import lay_theo_id_hoat_dong as lay_tinh_trang
 
 from repositories import doan_tuyen_repository as repo
 
 
 # ==========================
 # ROW → OBJECT
-# Dùng khi repository trả về raw row (tuple),
-# ví dụ: lay_tat_ca() trả về list[tuple]
 # ==========================
 
 def _row_to_object(row):
@@ -21,13 +20,14 @@ def _row_to_object(row):
         ly_trinh_dau=row[4],
         ly_trinh_cuoi=row[5],
         chieu_dai_thuc_te=row[7],
-        chieu_rong_mat_max=row[8],
-        chieu_rong_mat_min=row[9],
-        chieu_rong_nen_max=row[10],
-        chieu_rong_nen_min=row[11],
-        don_vi_bao_duong_id=row[12],
-        ghi_chu=row[13],
-        created_at=row[14],
+        tinh_trang_id=row[8],
+        chieu_rong_mat_max=row[9],
+        chieu_rong_mat_min=row[10],
+        chieu_rong_nen_max=row[11],
+        chieu_rong_nen_min=row[12],
+        don_vi_bao_duong_id=row[13],
+        ghi_chu=row[14],
+        created_at=row[15],
     )
 
 
@@ -45,7 +45,6 @@ def lay_tat_ca():
 # ==========================
 
 def lay_theo_ma(ma_doan):
-    """Trả về DoanTuyen object hoặc None."""
     return repo.lay_theo_ma(ma_doan)
 
 
@@ -54,17 +53,14 @@ def lay_theo_ma(ma_doan):
 # ==========================
 
 def lay_theo_id(id):
-    """Trả về DoanTuyen object hoặc None."""
     return repo.lay_theo_id(id)
 
 
 # ==========================
 # LẤY THEO TUYẾN
-# Repository đã trả về list[DoanTuyen] nên không cần _row_to_object
 # ==========================
 
 def lay_theo_tuyen(tuyen_id):
-    """Trả về list[DoanTuyen] sắp xếp theo ly_trinh_dau."""
     return repo.lay_theo_tuyen(tuyen_id)
 
 
@@ -74,19 +70,18 @@ def lay_theo_tuyen(tuyen_id):
 
 def them_doan_tuyen(doan: DoanTuyen):
 
-    # ---- Kiểm tra tuyến tồn tại ----
     if not lay_tuyen(doan.tuyen_id):
         raise ValueError("Tuyen khong ton tai!")
 
-    # ---- Kiểm tra cấp đường ----
     if not lay_cap(doan.cap_duong_id):
         raise ValueError("Cap duong khong hop le!")
 
-    # ---- Kiểm tra lý trình hợp lệ ----
+    if doan.tinh_trang_id and not lay_tinh_trang(doan.tinh_trang_id):
+        raise ValueError("Tinh trang khong hop le!")
+
     if doan.ly_trinh_cuoi <= doan.ly_trinh_dau:
         raise ValueError("Ly trinh cuoi phai lon hon ly trinh dau!")
 
-    # ---- TỰ TÍNH CHIỀU DÀI ----
     chieu_dai = doan.ly_trinh_cuoi - doan.ly_trinh_dau
 
     try:
@@ -98,6 +93,7 @@ def them_doan_tuyen(doan: DoanTuyen):
             doan.ly_trinh_cuoi,
             chieu_dai,
             doan.chieu_dai_thuc_te,
+            doan.tinh_trang_id,
             doan.chieu_rong_mat_max,
             doan.chieu_rong_mat_min,
             doan.chieu_rong_nen_max,
@@ -105,13 +101,11 @@ def them_doan_tuyen(doan: DoanTuyen):
             doan.don_vi_bao_duong_id,
             doan.ghi_chu
         )
-
         doan.id = last_id
-
     except Exception:
         raise ValueError("Ma doan da ton tai!")
 
-    # ---- CẬP NHẬT LẠI CHIỀU DÀI TUYẾN ----
+    # Cập nhật lại chiều dài tuyến
     cap_nhat_chieu_dai_tuyen(doan.tuyen_id)
 
     return doan
@@ -123,8 +117,45 @@ def them_doan_tuyen(doan: DoanTuyen):
 
 def get_or_create_doan_tuyen(doan: DoanTuyen):
     existing = repo.lay_theo_ma(doan.ma_doan)
-
     if existing:
         return existing
-
     return them_doan_tuyen(doan)
+
+
+# ==========================
+# THỐNG KÊ TÌNH TRẠNG TUYẾN
+# ==========================
+
+def thong_ke_tinh_trang_tuyen(tuyen_id):
+    """
+    Trả về dict gồm:
+    - chi_tiet: list các đoạn với tình trạng
+    - tong_hop: tổng chiều dài theo từng tình trạng + tỷ lệ %
+    """
+    chi_tiet = repo.thong_ke_tinh_trang_tuyen(tuyen_id)
+
+    # Tổng hợp theo tình trạng
+    tong_hop = {}
+    tong_km = 0.0
+
+    for doan in chi_tiet:
+        km = doan["chieu_dai_tinh"] or 0.0
+        tong_km += km
+        ma = doan["ma_tinh_trang"] or "CHUA_XAC_DINH"
+        ten = doan["ten_tinh_trang"] or "Chưa xác định"
+        mau = doan["mau_hien_thi"] or "#cccccc"
+
+        if ma not in tong_hop:
+            tong_hop[ma] = {"ten": ten, "mau": mau, "tong_km": 0.0}
+        tong_hop[ma]["tong_km"] += km
+
+    # Tính tỷ lệ %
+    for ma in tong_hop:
+        km = tong_hop[ma]["tong_km"]
+        tong_hop[ma]["ty_le"] = round(km / tong_km * 100, 1) if tong_km > 0 else 0.0
+
+    return {
+        "chi_tiet": chi_tiet,
+        "tong_hop": tong_hop,
+        "tong_km":  round(tong_km, 3)
+    }

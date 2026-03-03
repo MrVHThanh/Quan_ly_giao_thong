@@ -1,5 +1,5 @@
 luu/
-data/
+data_noload/
 __pycache__/
 *.pyc
 *.db

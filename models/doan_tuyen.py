@@ -1,14 +1,13 @@
-from datetime import datetime
-from typing import Optional
-
 class DoanTuyen:
     def __init__(
         self,
-        ma_doan,
-        tuyen_id,
-        cap_duong_id,
-        ly_trinh_dau,
-        ly_trinh_cuoi,
+        id=None,
+        ma_doan=None,
+        tuyen_id=None,
+        cap_duong_id=None,
+        ly_trinh_dau=None,
+        ly_trinh_cuoi=None,
+        tinh_trang_id=None,
         chieu_dai_thuc_te=None,
         chieu_rong_mat_max=None,
         chieu_rong_mat_min=None,
@@ -16,7 +15,6 @@ class DoanTuyen:
         chieu_rong_nen_min=None,
         don_vi_bao_duong_id=None,
         ghi_chu=None,
-        id=None,
         created_at=None
     ):
         self.id = id
@@ -25,6 +23,7 @@ class DoanTuyen:
         self.cap_duong_id = cap_duong_id
         self.ly_trinh_dau = ly_trinh_dau
         self.ly_trinh_cuoi = ly_trinh_cuoi
+        self.tinh_trang_id = tinh_trang_id
         self.chieu_dai_thuc_te = chieu_dai_thuc_te
         self.chieu_rong_mat_max = chieu_rong_mat_max
         self.chieu_rong_mat_min = chieu_rong_mat_min
@@ -44,7 +43,7 @@ class DoanTuyen:
     def chieu_dai(self):
         if self.ly_trinh_dau is None or self.ly_trinh_cuoi is None:
             return None
-        return (self.ly_trinh_cuoi - self.ly_trinh_dau)
+        return self.ly_trinh_cuoi - self.ly_trinh_dau
 
     @property
     def chieu_dai_tinh(self):
@@ -55,7 +54,6 @@ class DoanTuyen:
     # ==========================
 
     def _validate(self):
-
         if (
             self.ly_trinh_dau is not None
             and self.ly_trinh_cuoi is not None
@@ -85,9 +83,8 @@ class DoanTuyen:
         return (
             f"<DoanTuyen {self.ma_doan} | "
             f"{self.ly_trinh_dau}-{self.ly_trinh_cuoi} | "
-            f"{self.chieu_dai_tinh} km>"
+            f"{self.chieu_dai_tinh:.2f} km>"
         )
-    
 
     def to_dict(self):
         return {
@@ -97,6 +94,7 @@ class DoanTuyen:
             "cap_duong_id": self.cap_duong_id,
             "ly_trinh_dau": self.ly_trinh_dau,
             "ly_trinh_cuoi": self.ly_trinh_cuoi,
+            "tinh_trang_id": self.tinh_trang_id,
             "chieu_rong_mat_max": self.chieu_rong_mat_max,
             "chieu_rong_mat_min": self.chieu_rong_mat_min,
             "chieu_rong_nen_max": self.chieu_rong_nen_max,

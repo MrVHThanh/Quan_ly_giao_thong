@@ -81,9 +81,7 @@ def create_tables():
     """)
 
     # =========================
-    # TUYEN_DUONG
-    #   - chieu_dai_quan_ly : tổng đoạn chính (doan_tuyen)
-    #   - chieu_dai_thuc_te : tổng quãng đường (kể cả đoạn đi chung)
+    # TUYEN_DUONG (bỏ tinh_trang_id)
     # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tuyen_duong (
@@ -98,22 +96,20 @@ def create_tables():
         lng_dau REAL,
         lat_cuoi REAL,
         lng_cuoi REAL,
+        chieu_dai REAL,
         chieu_dai_thuc_te REAL,
         chieu_dai_quan_ly REAL,
         nam_xay_dung INTEGER,
         nam_hoan_thanh INTEGER,
-        tinh_trang_id INTEGER,
         ghi_chu TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (cap_quan_ly_id) REFERENCES cap_quan_ly(id),
-        FOREIGN KEY (don_vi_quan_ly_id) REFERENCES don_vi(id),
-        FOREIGN KEY (tinh_trang_id) REFERENCES tinh_trang(id)
+        FOREIGN KEY (don_vi_quan_ly_id) REFERENCES don_vi(id)
     )
     """)
 
     # =========================
-    # DOAN_TUYEN
-    # Đoạn vật lý — luôn thuộc một tuyến chủ sở hữu
+    # DOAN_TUYEN (thêm tinh_trang_id)
     # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS doan_tuyen (
@@ -125,6 +121,7 @@ def create_tables():
         ly_trinh_cuoi REAL NOT NULL,
         chieu_dai REAL,
         chieu_dai_thuc_te REAL,
+        tinh_trang_id INTEGER,
         chieu_rong_mat_max REAL,
         chieu_rong_mat_min REAL,
         chieu_rong_nen_max REAL,
@@ -134,6 +131,7 @@ def create_tables():
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (tuyen_id) REFERENCES tuyen_duong(id),
         FOREIGN KEY (cap_duong_id) REFERENCES cap_duong(id),
+        FOREIGN KEY (tinh_trang_id) REFERENCES tinh_trang(id),
         FOREIGN KEY (don_vi_bao_duong_id) REFERENCES don_vi(id)
     )
     """)
@@ -160,5 +158,4 @@ def create_tables():
 
     conn.commit()
     conn.close()
-
     print("Database created!!!")

@@ -7,7 +7,7 @@ def seed_don_vi():
     # 1️⃣ Sở GTVT
     so = get_or_create_don_vi(DonVi(
         ma_don_vi="SXD",
-        ten_don_vi="Sở GTVT Lào Cai",
+        ten_don_vi="Sở Xây dựng Lào Cai",
         loai="So"
     ))
 

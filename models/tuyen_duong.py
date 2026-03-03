@@ -12,11 +12,11 @@ class TuyenDuong:
         lng_dau=None,
         lat_cuoi=None,
         lng_cuoi=None,
+        chieu_dai=None,
         chieu_dai_thuc_te=None,
         chieu_dai_quan_ly=None,
         nam_xay_dung=None,
         nam_hoan_thanh=None,
-        tinh_trang_id=None,
         ghi_chu=None,
         created_at=None
     ):
@@ -31,11 +31,11 @@ class TuyenDuong:
         self.lng_dau = lng_dau
         self.lat_cuoi = lat_cuoi
         self.lng_cuoi = lng_cuoi
-        self.chieu_dai_thuc_te = chieu_dai_thuc_te     # tổng quãng đường (kể đoạn đi chung)
-        self.chieu_dai_quan_ly = chieu_dai_quan_ly     # chỉ đoạn chính (phục vụ bảo trì)
+        self.chieu_dai = chieu_dai
+        self.chieu_dai_thuc_te = chieu_dai_thuc_te
+        self.chieu_dai_quan_ly = chieu_dai_quan_ly
         self.nam_xay_dung = nam_xay_dung
         self.nam_hoan_thanh = nam_hoan_thanh
-        self.tinh_trang_id = tinh_trang_id
         self.ghi_chu = ghi_chu
         self.created_at = created_at
 
@@ -55,15 +55,12 @@ class TuyenDuong:
             return None
         return [self.lat_cuoi, self.lng_cuoi]
 
-    # ==========================
-    # HIỂN THỊ
-    # ==========================
-
     def __repr__(self):
-        thuc_te_str  = f"{self.chieu_dai_thuc_te:.2f}km"  if self.chieu_dai_thuc_te  else "N/A"
-        quan_ly_str  = f"{self.chieu_dai_quan_ly:.2f}km"  if self.chieu_dai_quan_ly  else "N/A"
+        chieu_dai_str = f"{self.chieu_dai:.2f}km"         if self.chieu_dai         else "N/A"
+        thuc_te_str   = f"{self.chieu_dai_thuc_te:.2f}km" if self.chieu_dai_thuc_te else "N/A"
+        quan_ly_str   = f"{self.chieu_dai_quan_ly:.2f}km" if self.chieu_dai_quan_ly else "N/A"
         return (
             f"{self.id}. {self.ma_tuyen} - {self.ten_tuyen} "
-            f"| Thực tế: {thuc_te_str} | Quản lý: {quan_ly_str} "
+            f"| Tổng: {chieu_dai_str} | Thực tế: {thuc_te_str} | Quản lý: {quan_ly_str} "
             f"| {self.diem_dau or '?'} → {self.diem_cuoi or '?'}"
         )
