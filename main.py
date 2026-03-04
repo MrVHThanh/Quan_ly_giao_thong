@@ -81,24 +81,44 @@ if __name__ == "__main__":
     print("\n===== HOAN THANH =====")
 
 
-# Thống kê 1 cấp
-ket_qua = tuyen_duong_service.thong_ke_theo_cap_quan_ly("QL")
-
-# Thống kê 1 cấp
-#ket_qua = tuyen_duong_service.thong_ke_theo_cap_quan_ly("tl")
-
-# Thống kê nhiều cấp
-#ket_qua = tuyen_duong_service.thong_ke_theo_cap_quan_ly(["QL", "DT"])
-
+# Thống kê các tuyến Quốc lộ
+quoclo = tuyen_duong_service.thong_ke_theo_cap_quan_ly("QL")
 # In kết quả
-for cap in ket_qua:
+print("============DANH SÁCH CÁC TUYẾN QUỐC LỘ=======================")
+for cap in quoclo:
     print(f"\n{cap['ma_cap']} - {cap['ten_cap']}")
     print(f"  Số tuyến        : {cap['so_tuyen']}")
     print(f"  CD quản lý      : {cap['tong_chieu_dai_quan_ly']} km")
     print(f"  CD thực tế      : {cap['tong_chieu_dai_thuc_te']} km")
     for tuyen in cap['ds_tuyen']:
         print(f"    - {tuyen}")
-print(tuyen_duong_service.lay_theo_ma("QL279"))
+
+# Thống kê các tuyến Tỉnh lộ
+tinhlo = tuyen_duong_service.thong_ke_theo_cap_quan_ly("DT")
+print("============DANH SÁCH CÁC TUYẾN TỈNH LỘ=======================")
+for cap in tinhlo:
+    print(f"\n{cap['ma_cap']} - {cap['ten_cap']}")
+    print(f"  Số tuyến        : {cap['so_tuyen']}")
+    print(f"  CD quản lý      : {cap['tong_chieu_dai_quan_ly']} km")
+    print(f"  CD thực tế      : {cap['tong_chieu_dai_thuc_te']} km")
+    for tuyen in cap['ds_tuyen']:
+        print(f"    - {tuyen}")
+
+print("============DANH SÁCH CÁC TUYẾN QUỐC LỘ, TỈNH LỘ=======================")
+# Thống kê quốc lộ và tỉnh lộ
+quoclo_tinhlo = tuyen_duong_service.thong_ke_theo_cap_quan_ly(["QL", "DT"])
+for cap in quoclo_tinhlo:
+    print(f"\n{cap['ma_cap']} - {cap['ten_cap']}")
+    print(f"  Số tuyến        : {cap['so_tuyen']}")
+    print(f"  CD quản lý      : {cap['tong_chieu_dai_quan_ly']} km")
+    print(f"  CD thực tế      : {cap['tong_chieu_dai_thuc_te']} km")
+    for tuyen in cap['ds_tuyen']:
+        print(f"    - {tuyen}")
+print(quoclo_tinhlo)
+
+
+
+
 
 
 
