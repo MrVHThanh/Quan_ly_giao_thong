@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from config.settings import DATABASE_PATH
 
 from config.database import create_tables, DB_PATH
 from seeds.seed_all import seed_all
@@ -42,6 +43,8 @@ def in_thong_ke_tinh_trang(tuyen):
 
 
 if __name__ == "__main__":
+
+    print("Database path:", DATABASE_PATH)
 
     print("\n===== KHOI TAO DATABASE =====")
     if os.path.exists(DB_PATH):

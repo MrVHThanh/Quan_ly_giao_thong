@@ -1,6 +1,24 @@
-luu/
-data_noload/
+# Virtual Environment
+venv/
+.env/
+.venv/
+
+# Python cache
 __pycache__/
 *.pyc
+
+# VS Code
+.vscode/
+
+# Ca nhan
+luu/
+data_noload/
 *.db
 .env
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
