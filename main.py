@@ -18,6 +18,7 @@ import services.don_vi_service as don_vi_service
 import services.tinh_trang_service as tinh_trang_service
 import services.tuyen_duong_service as tuyen_duong_service
 import services.doan_tuyen_service as doan_tuyen_service
+import services.thong_ke_service as thong_ke_service
 
 
 def in_cay_don_vi(parent_id=None, level=0):
@@ -120,7 +121,7 @@ for cap in quoclo_tinhlo:
 #print(quoclo_tinhlo)
 
 
-
+thong_ke_service.in_thong_ke_cap_ky_thuat()
 
 
 
