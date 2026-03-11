@@ -22,7 +22,7 @@ def seed_don_vi():
     # 3️⃣ Công ty bảo trì
     cong_ty = get_or_create_don_vi(DonVi(
         ma_don_vi="CTY_MD",
-        ten_don_vi="Công ty Minh Đức",
+        ten_don_vi="Công ty TNHH Xây dựng tổng hợp Minh Đức",
         loai="Donvi",
         parent_id=ban.id
     ))
@@ -30,7 +30,7 @@ def seed_don_vi():
     # 3️⃣ Công ty bảo trì
     cong_ty_2 = get_or_create_don_vi(DonVi(
         ma_don_vi="CTY_BT",
-        ten_don_vi="Công ty bảo trì đường bộ",
+        ten_don_vi="Công ty Cổ phần đường bộ Lào Cai",
         loai="Donvi",
         parent_id=ban.id
     ))    

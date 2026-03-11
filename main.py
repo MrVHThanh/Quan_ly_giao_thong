@@ -44,12 +44,12 @@ def in_thong_ke_tinh_trang(tuyen):
 
 if __name__ == "__main__":
 
-    print("Database path:", DATABASE_PATH)
+    #print("Database path:", DATABASE_PATH)
 
     print("\n===== KHOI TAO DATABASE =====")
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-        print("Da xoa database cu!")
+    #if os.path.exists(DB_PATH):
+    #    os.remove(DB_PATH)
+    #    print("Da xoa database cu!")
     create_tables()
 
     print("\n===== SEED DU LIEU =====")
@@ -117,7 +117,7 @@ for cap in quoclo_tinhlo:
     print(f"  CD thực tế      : {cap['tong_chieu_dai_thuc_te']} km")
     for tuyen in cap['ds_tuyen']:
         print(f"    - {tuyen}")
-print(quoclo_tinhlo)
+#print(quoclo_tinhlo)
 
 
 

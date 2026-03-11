@@ -11,7 +11,8 @@ def seed_tinh_trang():
         ("THI_CONG", "Đang thi công",    "Đang trong quá trình xây dựng mới",                     "#3498db", 5),
         ("BAO_TRI",  "Đang bảo trì",     "Đang sửa chữa, bảo dưỡng định kỳ",                     "#9b59b6", 6),
         ("TAM_DONG", "Tạm đóng",         "Đóng cửa tạm thời do thiên tai hoặc sự cố",            "#7f8c8d", 7),
-        ("NGUNG",    "Ngưng sử dụng",    "Không còn khai thác, chờ thanh lý hoặc cải tạo",       "#2c3e50", 8),
+        ("CHUA_XD", "Chưa xây dựng",         "Đường trong quy hoạch, chưa xây dựng",            "#7f8c8d", 8),
+        ("NGUNG",    "Ngưng sử dụng",    "Không còn khai thác, chờ thanh lý hoặc cải tạo",       "#2c3e50", 9),
     ]
 
     result = {}
