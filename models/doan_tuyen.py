@@ -81,9 +81,11 @@ class DoanTuyen:
 
     def __repr__(self):
         return (
-            f"<DoanTuyen {self.ma_doan} | "
+            f"Doan {self.ma_doan} | "
             f"{self.ly_trinh_dau}-{self.ly_trinh_cuoi} | "
-            f"{self.chieu_dai_tinh:.2f} km>"
+            f"{self.chieu_dai_tinh:.2f} km; "
+            #f"{self.cap_duong_id.ten_cap}"
+
         )
 
     def to_dict(self):
