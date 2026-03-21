@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{% if tuyen %}Sửa tuyến{% else %}Thêm tuyến{% endif %}{% endblock %}
+{% block page_title %}{% if tuyen %}Sửa: {{ tuyen.ten_tuyen }}{% else %}Thêm tuyến đường mới{% endif %}{% endblock %}
+
+{% block content %}
+{% if loi %}
+<div class="alert alert-danger">{{ loi }}</div>
+{% endif %}
+
+<div class="card" style="max-width:700px">
+  <div class="card-body">
+    <form method="post" action="{% if tuyen %}/tuyen-duong/{{ tuyen.id }}/sua{% else %}/tuyen-duong/them{% endif %}">
+      <div class="row g-3">
+        {% if not tuyen %}
+        <div class="col-md-4">
+          <label class="form-label">Mã tuyến <span class="text-danger">*</span></label>
+          <input name="ma_tuyen" class="form-control form-control-sm" required placeholder="VD: DT158">
+        </div>
+        {% endif %}
+        <div class="col-md-8">
+          <label class="form-label">Tên tuyến <span class="text-danger">*</span></label>
+          <input name="ten_tuyen" class="form-control form-control-sm" required
+                 value="{{ tuyen.ten_tuyen if tuyen else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Cấp quản lý <span class="text-danger">*</span></label>
+          <select name="cap_quan_ly_id" class="form-select form-select-sm" required>
+            {% for c in cap_quan_ly_list %}
+            <option value="{{ c.id }}" {% if tuyen and tuyen.cap_quan_ly_id == c.id %}selected{% endif %}>
+              {{ c.ma_cap }} — {{ c.ten_cap }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Đơn vị quản lý <span class="text-danger">*</span></label>
+          <select name="don_vi_quan_ly_id" class="form-select form-select-sm" required>
+            {% for d in don_vi_list %}
+            <option value="{{ d.id }}" {% if tuyen and tuyen.don_vi_quan_ly_id == d.id %}selected{% endif %}>
+              {{ d.ma_don_vi }} — {{ d.ten_don_vi }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Điểm đầu</label>
+          <input name="diem_dau" class="form-control form-control-sm" value="{{ tuyen.diem_dau if tuyen else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Điểm cuối</label>
+          <input name="diem_cuoi" class="form-control form-control-sm" value="{{ tuyen.diem_cuoi if tuyen else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Năm xây dựng</label>
+          <input name="nam_xay_dung" type="number" class="form-control form-control-sm"
+                 value="{{ tuyen.nam_xay_dung if tuyen else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Năm hoàn thành</label>
+          <input name="nam_hoan_thanh" type="number" class="form-control form-control-sm"
+                 value="{{ tuyen.nam_hoan_thanh if tuyen else '' }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Ghi chú</label>
+          <textarea name="ghi_chu" class="form-control form-control-sm" rows="2">{{ tuyen.ghi_chu if tuyen else '' }}</textarea>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+          <a href="{% if tuyen %}/tuyen-duong/{{ tuyen.id }}{% else %}/tuyen-duong/{% endif %}"
+             class="btn btn-sm btn-outline-secondary">Hủy</a>
+          {% if tuyen %}
+          <form method="post" action="/tuyen-duong/{{ tuyen.id }}/xoa" class="ms-auto"
+                onsubmit="return confirm('Xóa tuyến {{ tuyen.ma_tuyen }}?')">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Xóa tuyến</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

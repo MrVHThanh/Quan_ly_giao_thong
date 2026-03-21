@@ -1,161 +1,211 @@
-from models.doan_tuyen import DoanTuyen
-from services.tuyen_duong_service import lay_theo_id as lay_tuyen
-from services.tuyen_duong_service import cap_nhat_chieu_dai_tuyen
-from services.cap_duong_service import lay_theo_id_hoat_dong as lay_cap
-from services.tinh_trang_service import lay_theo_id_hoat_dong as lay_tinh_trang
+"""
+Service: DoanTuyen — Đoạn tuyến
+Toàn bộ validation + business logic tập trung ở đây.
+Validation đã được chuyển ra khỏi model hoàn toàn.
+"""
 
-from repositories import doan_tuyen_repository as repo
+import sqlite3
+from typing import Optional, List
+
+import models.doan_tuyen as doan_tuyen_model
+import repositories.doan_tuyen_repository as doan_tuyen_repo
+import repositories.tuyen_duong_repository as tuyen_duong_repo
 
 
-# ==========================
-# ROW → OBJECT
-# ==========================
+class DoanTuyenServiceError(Exception):
+    pass
 
-def _row_to_object(row):
-    return DoanTuyen(
-        id=row[0],
-        ma_doan=row[1],
-        tuyen_id=row[2],
-        cap_duong_id=row[3],
-        ly_trinh_dau=row[4],
-        ly_trinh_cuoi=row[5],
-        chieu_dai_thuc_te=row[7],
-        tinh_trang_id=row[8],
-        chieu_rong_mat_max=row[9],
-        chieu_rong_mat_min=row[10],
-        chieu_rong_nen_max=row[11],
-        chieu_rong_nen_min=row[12],
-        don_vi_bao_duong_id=row[13],
-        ghi_chu=row[14],
-        created_at=row[15],
+
+def lay_theo_tuyen_id(
+    conn: sqlite3.Connection, tuyen_id: int
+) -> List[doan_tuyen_model.DoanTuyen]:
+    return doan_tuyen_repo.lay_theo_tuyen_id(conn, tuyen_id)
+
+
+def lay_theo_id(conn: sqlite3.Connection, id: int) -> doan_tuyen_model.DoanTuyen:
+    obj = doan_tuyen_repo.lay_theo_id(conn, id)
+    if obj is None:
+        raise DoanTuyenServiceError(f"Không tìm thấy đoạn tuyến id={id}.")
+    return obj
+
+
+def lay_theo_ma(conn: sqlite3.Connection, ma_doan: str) -> doan_tuyen_model.DoanTuyen:
+    obj = doan_tuyen_repo.lay_theo_ma(conn, ma_doan)
+    if obj is None:
+        raise DoanTuyenServiceError(f"Không tìm thấy đoạn tuyến mã '{ma_doan}'.")
+    return obj
+
+
+def lay_theo_tinh_trang(
+    conn: sqlite3.Connection, tinh_trang_id: int
+) -> List[doan_tuyen_model.DoanTuyen]:
+    return doan_tuyen_repo.lay_theo_tinh_trang(conn, tinh_trang_id)
+
+
+def lay_theo_ket_cau_mat(
+    conn: sqlite3.Connection, ket_cau_mat_id: int
+) -> List[doan_tuyen_model.DoanTuyen]:
+    return doan_tuyen_repo.lay_theo_ket_cau_mat(conn, ket_cau_mat_id)
+
+
+def them(
+    conn: sqlite3.Connection,
+    ma_doan: str,
+    tuyen_id: int,
+    cap_duong_id: int,
+    tinh_trang_id: int,
+    ly_trinh_dau: float,
+    ly_trinh_cuoi: float,
+    ket_cau_mat_id: Optional[int] = None,
+    chieu_dai_thuc_te: Optional[float] = None,
+    chieu_rong_mat_min: Optional[float] = None,
+    chieu_rong_mat_max: Optional[float] = None,
+    chieu_rong_nen_min: Optional[float] = None,
+    chieu_rong_nen_max: Optional[float] = None,
+    don_vi_bao_duong_id: Optional[int] = None,
+    nam_lam_moi: Optional[int] = None,
+    ngay_cap_nhat_tinh_trang: Optional[str] = None,
+    ghi_chu: Optional[str] = None,
+    updated_by_id: Optional[int] = None,
+) -> doan_tuyen_model.DoanTuyen:
+    _validate_ma(ma_doan)
+    _validate_tuyen_ton_tai(conn, tuyen_id)
+    _validate_ly_trinh(ly_trinh_dau, ly_trinh_cuoi)
+    _validate_chieu_rong(chieu_rong_mat_min, chieu_rong_mat_max, "mặt")
+    _validate_chieu_rong(chieu_rong_nen_min, chieu_rong_nen_max, "nền")
+    _validate_nam_lam_moi(nam_lam_moi)
+    _kiem_tra_ma_doan_trung(conn, ma_doan)
+
+    obj = doan_tuyen_model.DoanTuyen(
+        ma_doan=ma_doan.strip().upper(),
+        tuyen_id=tuyen_id,
+        cap_duong_id=cap_duong_id,
+        tinh_trang_id=tinh_trang_id,
+        ket_cau_mat_id=ket_cau_mat_id,
+        ly_trinh_dau=ly_trinh_dau,
+        ly_trinh_cuoi=ly_trinh_cuoi,
+        chieu_dai_thuc_te=chieu_dai_thuc_te,
+        chieu_rong_mat_min=chieu_rong_mat_min,
+        chieu_rong_mat_max=chieu_rong_mat_max,
+        chieu_rong_nen_min=chieu_rong_nen_min,
+        chieu_rong_nen_max=chieu_rong_nen_max,
+        don_vi_bao_duong_id=don_vi_bao_duong_id,
+        nam_lam_moi=nam_lam_moi,
+        ngay_cap_nhat_tinh_trang=ngay_cap_nhat_tinh_trang,
+        ghi_chu=ghi_chu,
+        updated_by_id=updated_by_id,
     )
+    obj.id = doan_tuyen_repo.them(conn, obj)
+    return obj
 
 
-# ==========================
-# LẤY TẤT CẢ
-# ==========================
+def sua(
+    conn: sqlite3.Connection,
+    id: int,
+    cap_duong_id: int,
+    tinh_trang_id: int,
+    ly_trinh_dau: float,
+    ly_trinh_cuoi: float,
+    ket_cau_mat_id: Optional[int] = None,
+    chieu_dai_thuc_te: Optional[float] = None,
+    chieu_rong_mat_min: Optional[float] = None,
+    chieu_rong_mat_max: Optional[float] = None,
+    chieu_rong_nen_min: Optional[float] = None,
+    chieu_rong_nen_max: Optional[float] = None,
+    don_vi_bao_duong_id: Optional[int] = None,
+    nam_lam_moi: Optional[int] = None,
+    ngay_cap_nhat_tinh_trang: Optional[str] = None,
+    ghi_chu: Optional[str] = None,
+    updated_by_id: Optional[int] = None,
+) -> doan_tuyen_model.DoanTuyen:
+    obj = lay_theo_id(conn, id)
+    _validate_ly_trinh(ly_trinh_dau, ly_trinh_cuoi)
+    _validate_chieu_rong(chieu_rong_mat_min, chieu_rong_mat_max, "mặt")
+    _validate_chieu_rong(chieu_rong_nen_min, chieu_rong_nen_max, "nền")
+    _validate_nam_lam_moi(nam_lam_moi)
 
-def lay_tat_ca():
-    rows = repo.lay_tat_ca()
-    return [_row_to_object(row) for row in rows]
+    obj.cap_duong_id = cap_duong_id
+    obj.tinh_trang_id = tinh_trang_id
+    obj.ket_cau_mat_id = ket_cau_mat_id
+    obj.ly_trinh_dau = ly_trinh_dau
+    obj.ly_trinh_cuoi = ly_trinh_cuoi
+    obj.chieu_dai_thuc_te = chieu_dai_thuc_te
+    obj.chieu_rong_mat_min = chieu_rong_mat_min
+    obj.chieu_rong_mat_max = chieu_rong_mat_max
+    obj.chieu_rong_nen_min = chieu_rong_nen_min
+    obj.chieu_rong_nen_max = chieu_rong_nen_max
+    obj.don_vi_bao_duong_id = don_vi_bao_duong_id
+    obj.nam_lam_moi = nam_lam_moi
+    obj.ngay_cap_nhat_tinh_trang = ngay_cap_nhat_tinh_trang
+    obj.ghi_chu = ghi_chu
+    obj.updated_by_id = updated_by_id
+    doan_tuyen_repo.sua(conn, obj)
+    return obj
 
 
-# ==========================
-# LẤY THEO MÃ
-# ==========================
-
-def lay_theo_ma(ma_doan):
-    return repo.lay_theo_ma(ma_doan)
-
-
-# ==========================
-# LẤY THEO ID
-# ==========================
-
-def lay_theo_id(id):
-    return repo.lay_theo_id(id)
+def cap_nhat_tinh_trang(
+    conn: sqlite3.Connection,
+    id: int,
+    tinh_trang_id: int,
+    ngay_cap_nhat: str,
+    updated_by_id: int,
+) -> None:
+    """Cập nhật nhanh tình trạng sau đợt khảo sát hiện trường."""
+    lay_theo_id(conn, id)  # kiểm tra tồn tại
+    doan_tuyen_repo.cap_nhat_tinh_trang(conn, id, tinh_trang_id, ngay_cap_nhat, updated_by_id)
 
 
-# ==========================
-# LẤY THEO TUYẾN
-# ==========================
-
-def lay_theo_tuyen(tuyen_id):
-    return repo.lay_theo_tuyen(tuyen_id)
+def xoa(conn: sqlite3.Connection, id: int) -> None:
+    lay_theo_id(conn, id)
+    doan_tuyen_repo.xoa(conn, id)
 
 
-# ==========================
-# THÊM
-# ==========================
+# ── Validation nội bộ ──────────────────────────────────────────────────────
 
-def them_doan_tuyen(doan: DoanTuyen):
+def _validate_ma(ma_doan: str) -> None:
+    if not ma_doan or not ma_doan.strip():
+        raise DoanTuyenServiceError("Mã đoạn không được để trống.")
+    if len(ma_doan.strip()) > 30:
+        raise DoanTuyenServiceError("Mã đoạn không được vượt quá 30 ký tự.")
 
-    if not lay_tuyen(doan.tuyen_id):
-        raise ValueError("Tuyen khong ton tai!")
 
-    if not lay_cap(doan.cap_duong_id):
-        raise ValueError("Cap duong khong hop le!")
+def _validate_tuyen_ton_tai(conn: sqlite3.Connection, tuyen_id: int) -> None:
+    if tuyen_duong_repo.lay_theo_id(conn, tuyen_id) is None:
+        raise DoanTuyenServiceError(f"Tuyến đường id={tuyen_id} không tồn tại.")
 
-    if doan.tinh_trang_id and not lay_tinh_trang(doan.tinh_trang_id):
-        raise ValueError("Tinh trang khong hop le!")
 
-    if doan.ly_trinh_cuoi <= doan.ly_trinh_dau:
-        raise ValueError("Ly trinh cuoi phai lon hon ly trinh dau!")
-
-    chieu_dai = doan.ly_trinh_cuoi - doan.ly_trinh_dau
-
-    try:
-        last_id = repo.them_doan_tuyen(
-            doan.ma_doan,
-            doan.tuyen_id,
-            doan.cap_duong_id,
-            doan.ly_trinh_dau,
-            doan.ly_trinh_cuoi,
-            chieu_dai,
-            doan.chieu_dai_thuc_te,
-            doan.tinh_trang_id,
-            doan.chieu_rong_mat_max,
-            doan.chieu_rong_mat_min,
-            doan.chieu_rong_nen_max,
-            doan.chieu_rong_nen_min,
-            doan.don_vi_bao_duong_id,
-            doan.ghi_chu
+def _validate_ly_trinh(dau: float, cuoi: float) -> None:
+    if dau is None or cuoi is None:
+        raise DoanTuyenServiceError("Lý trình đầu và cuối không được để trống.")
+    if dau < 0 or cuoi < 0:
+        raise DoanTuyenServiceError("Lý trình không được âm.")
+    if cuoi <= dau:
+        raise DoanTuyenServiceError(
+            f"Lý trình cuối ({cuoi}) phải lớn hơn lý trình đầu ({dau})."
         )
-        doan.id = last_id
-    except Exception:
-        raise ValueError("Ma doan da ton tai!")
-
-    # Cập nhật lại chiều dài tuyến
-    cap_nhat_chieu_dai_tuyen(doan.tuyen_id)
-
-    return doan
 
 
-# ==========================
-# GET OR CREATE
-# ==========================
+def _validate_chieu_rong(
+    gia_tri_min: Optional[float], gia_tri_max: Optional[float], loai: str
+) -> None:
+    if gia_tri_min is None and gia_tri_max is None:
+        return
+    if gia_tri_min is not None and gia_tri_min <= 0:
+        raise DoanTuyenServiceError(f"Chiều rộng {loai} min phải lớn hơn 0.")
+    if gia_tri_max is not None and gia_tri_max <= 0:
+        raise DoanTuyenServiceError(f"Chiều rộng {loai} max phải lớn hơn 0.")
+    if (gia_tri_min is not None and gia_tri_max is not None
+            and gia_tri_max < gia_tri_min):
+        raise DoanTuyenServiceError(
+            f"Chiều rộng {loai} max không thể nhỏ hơn min."
+        )
 
-def get_or_create_doan_tuyen(doan: DoanTuyen):
-    existing = repo.lay_theo_ma(doan.ma_doan)
-    if existing:
-        return existing
-    return them_doan_tuyen(doan)
+
+def _validate_nam_lam_moi(nam: Optional[int]) -> None:
+    if nam is not None and not (1900 <= nam <= 2100):
+        raise DoanTuyenServiceError("Năm làm mới không hợp lệ.")
 
 
-# ==========================
-# THỐNG KÊ TÌNH TRẠNG TUYẾN
-# ==========================
-
-def thong_ke_tinh_trang_tuyen(tuyen_id):
-    """
-    Trả về dict gồm:
-    - chi_tiet: list các đoạn với tình trạng
-    - tong_hop: tổng chiều dài theo từng tình trạng + tỷ lệ %
-    """
-    chi_tiet = repo.thong_ke_tinh_trang_tuyen(tuyen_id)
-
-    # Tổng hợp theo tình trạng
-    tong_hop = {}
-    tong_km = 0.0
-
-    for doan in chi_tiet:
-        km = doan["chieu_dai_tinh"] or 0.0
-        tong_km += km
-        ma = doan["ma_tinh_trang"] or "CHUA_XAC_DINH"
-        ten = doan["ten_tinh_trang"] or "Chưa xác định"
-        mau = doan["mau_hien_thi"] or "#cccccc"
-
-        if ma not in tong_hop:
-            tong_hop[ma] = {"ten": ten, "mau": mau, "tong_km": 0.0}
-        tong_hop[ma]["tong_km"] += km
-
-    # Tính tỷ lệ %
-    for ma in tong_hop:
-        km = tong_hop[ma]["tong_km"]
-        tong_hop[ma]["ty_le"] = round(km / tong_km * 100, 1) if tong_km > 0 else 0.0
-
-    return {
-        "chi_tiet": chi_tiet,
-        "tong_hop": tong_hop,
-        "tong_km":  round(tong_km, 3)
-    }
+def _kiem_tra_ma_doan_trung(conn: sqlite3.Connection, ma_doan: str) -> None:
+    if doan_tuyen_repo.lay_theo_ma(conn, ma_doan) is not None:
+        raise DoanTuyenServiceError(f"Mã đoạn '{ma_doan}' đã tồn tại.")

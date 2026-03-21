@@ -1,0 +1,79 @@
+"""
+Repository: ThongTinTuyen — Thông tin mô tả bổ sung tuyến đường  [MỚI]
+Chỉ SQL thuần, dùng sqlite3.Row. KHÔNG hardcode index cột.
+
+Quan hệ 1-1: mỗi tuyen_duong có tối đa 1 bản ghi thong_tin_tuyen.
+"""
+
+import sqlite3
+from typing import Optional, List
+import models.thong_tin_tuyen as thong_tin_tuyen_model
+
+
+def lay_theo_tuyen_id(conn: sqlite3.Connection, tuyen_id: int) -> Optional[thong_tin_tuyen_model.ThongTinTuyen]:
+    row = conn.execute(
+        "SELECT * FROM thong_tin_tuyen WHERE tuyen_id = ?", (tuyen_id,)
+    ).fetchone()
+    return _row_to_object(row) if row else None
+
+
+def lay_theo_id(conn: sqlite3.Connection, id: int) -> Optional[thong_tin_tuyen_model.ThongTinTuyen]:
+    row = conn.execute("SELECT * FROM thong_tin_tuyen WHERE id = ?", (id,)).fetchone()
+    return _row_to_object(row) if row else None
+
+
+def lay_tat_ca(conn: sqlite3.Connection) -> List[thong_tin_tuyen_model.ThongTinTuyen]:
+    rows = conn.execute("SELECT * FROM thong_tin_tuyen ORDER BY tuyen_id").fetchall()
+    return [_row_to_object(r) for r in rows]
+
+
+def them(conn: sqlite3.Connection, obj: thong_tin_tuyen_model.ThongTinTuyen) -> int:
+    sql = """
+        INSERT INTO thong_tin_tuyen (
+            tuyen_id, mo_ta, ly_do_xay_dung, dac_diem_dia_ly,
+            lich_su_hinh_thanh, y_nghia_kinh_te, ghi_chu
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    """
+    cur = conn.execute(sql, (
+        obj.tuyen_id, obj.mo_ta, obj.ly_do_xay_dung, obj.dac_diem_dia_ly,
+        obj.lich_su_hinh_thanh, obj.y_nghia_kinh_te, obj.ghi_chu,
+    ))
+    conn.commit()
+    return cur.lastrowid
+
+
+def sua(conn: sqlite3.Connection, obj: thong_tin_tuyen_model.ThongTinTuyen) -> bool:
+    sql = """
+        UPDATE thong_tin_tuyen
+        SET mo_ta=?, ly_do_xay_dung=?, dac_diem_dia_ly=?,
+            lich_su_hinh_thanh=?, y_nghia_kinh_te=?, ghi_chu=?,
+            updated_at=datetime('now','localtime')
+        WHERE id=?
+    """
+    cur = conn.execute(sql, (
+        obj.mo_ta, obj.ly_do_xay_dung, obj.dac_diem_dia_ly,
+        obj.lich_su_hinh_thanh, obj.y_nghia_kinh_te, obj.ghi_chu, obj.id,
+    ))
+    conn.commit()
+    return cur.rowcount > 0
+
+
+def xoa(conn: sqlite3.Connection, id: int) -> bool:
+    cur = conn.execute("DELETE FROM thong_tin_tuyen WHERE id = ?", (id,))
+    conn.commit()
+    return cur.rowcount > 0
+
+
+def _row_to_object(row: sqlite3.Row) -> thong_tin_tuyen_model.ThongTinTuyen:
+    return thong_tin_tuyen_model.ThongTinTuyen(
+        id=row["id"],
+        tuyen_id=row["tuyen_id"],
+        mo_ta=row["mo_ta"],
+        ly_do_xay_dung=row["ly_do_xay_dung"],
+        dac_diem_dia_ly=row["dac_diem_dia_ly"],
+        lich_su_hinh_thanh=row["lich_su_hinh_thanh"],
+        y_nghia_kinh_te=row["y_nghia_kinh_te"],
+        ghi_chu=row["ghi_chu"],
+        created_at=row["created_at"],
+        updated_at=row["updated_at"],
+    )

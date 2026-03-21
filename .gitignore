@@ -12,6 +12,7 @@ __pycache__/
 
 # Ca nhan
 luu/
+map/luu/
 data_noload/
 *.db
 .env

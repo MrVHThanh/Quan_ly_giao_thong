@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Đoạn tuyến{% endblock %}
+{% block page_title %}Danh sách đoạn tuyến{% endblock %}
+
+{% block topbar_actions %}
+<a href="/doan-tuyen/them" class="btn btn-sm btn-primary">
+  <i class="bi bi-plus-lg me-1"></i>Thêm đoạn
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Bộ lọc -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="form-label mb-1 small">Tuyến</label>
+        <select name="tuyen_id" class="form-select form-select-sm">
+          <option value="">-- Tất cả --</option>
+          {% for t in tuyen_list %}
+          <option value="{{ t.id }}" {% if bo_loc.tuyen_id == t.id %}selected{% endif %}>
+            {{ t.ma_tuyen }} — {{ t.ten_tuyen }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label mb-1 small">Tình trạng</label>
+        <select name="tinh_trang_id" class="form-select form-select-sm">
+          <option value="">-- Tất cả --</option>
+          {% for tt in tinh_trang_list %}
+          <option value="{{ tt.id }}" {% if bo_loc.tinh_trang_id == tt.id %}selected{% endif %}>
+            {{ tt.ten_tinh_trang }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
+        <a href="/doan-tuyen/" class="btn btn-sm btn-outline-secondary">Xóa lọc</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header bg-white py-2 small text-muted">
+    {{ doan_list|length }} đoạn tuyến
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Mã đoạn</th><th>Tuyến</th><th>Lý trình (km)</th>
+          <th>Cấp đường</th><th>Tình trạng</th><th>Kết cấu</th>
+          <th class="text-end">Dài (km)</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in doan_list %}
+        <tr>
+          <td><a href="/doan-tuyen/{{ d.id }}" class="fw-semibold text-decoration-none">{{ d.ma_doan }}</a></td>
+          <td class="text-muted small">{{ d.tuyen_id }}</td>
+          <td class="text-muted small">{{ d.ly_trinh_dau }}–{{ d.ly_trinh_cuoi }}</td>
+          <td>{{ d.cap_duong_id or '—' }}</td>
+          <td>{{ d.tinh_trang_id or '—' }}</td>
+          <td>{{ d.ket_cau_mat_id or '—' }}</td>
+          <td class="text-end">{{ "%.3f"|format(d.chieu_dai or 0) }}</td>
+          <td><a href="/doan-tuyen/{{ d.id }}/sua" class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;">Sửa</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">Không có dữ liệu.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

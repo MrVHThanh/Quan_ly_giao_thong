@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}{% if doan %}Sửa đoạn{% else %}Thêm đoạn{% endif %}{% endblock %}
+{% block page_title %}{% if doan %}Sửa: {{ doan.ma_doan }}{% else %}Thêm đoạn tuyến mới{% endif %}{% endblock %}
+
+{% block content %}
+{% if loi %}<div class="alert alert-danger">{{ loi }}</div>{% endif %}
+
+<div class="card" style="max-width:760px">
+  <div class="card-body">
+    <form method="post" action="{% if doan %}/doan-tuyen/{{ doan.id }}/sua{% else %}/doan-tuyen/them{% endif %}">
+      <div class="row g-3">
+        {% if not doan %}
+        <div class="col-md-4">
+          <label class="form-label">Mã đoạn <span class="text-danger">*</span></label>
+          <input name="ma_doan" class="form-control form-control-sm" required placeholder="VD: QL4E-01">
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Tuyến <span class="text-danger">*</span></label>
+          <select name="tuyen_id" class="form-select form-select-sm" required>
+            {% for t in tuyen_list %}
+            <option value="{{ t.id }}">{{ t.ma_tuyen }} — {{ t.ten_tuyen }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+        <div class="col-md-3">
+          <label class="form-label">Lý trình đầu <span class="text-danger">*</span></label>
+          <input name="ly_trinh_dau" type="number" step="0.001" class="form-control form-control-sm" required
+                 value="{{ doan.ly_trinh_dau if doan else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Lý trình cuối <span class="text-danger">*</span></label>
+          <input name="ly_trinh_cuoi" type="number" step="0.001" class="form-control form-control-sm" required
+                 value="{{ doan.ly_trinh_cuoi if doan else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Chiều dài thực tế</label>
+          <input name="chieu_dai_thuc_te" type="number" step="0.001" class="form-control form-control-sm"
+                 value="{{ doan.chieu_dai_thuc_te if doan else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Cấp đường <span class="text-danger">*</span></label>
+          <select name="cap_duong_id" class="form-select form-select-sm" required>
+            {% for c in cap_duong_list %}
+            <option value="{{ c.id }}" {% if doan and doan.cap_duong_id == c.id %}selected{% endif %}>{{ c.ma_cap }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tình trạng <span class="text-danger">*</span></label>
+          <select name="tinh_trang_id" class="form-select form-select-sm" required>
+            {% for tt in tinh_trang_list %}
+            <option value="{{ tt.id }}" {% if doan and doan.tinh_trang_id == tt.id %}selected{% endif %}>{{ tt.ten_tinh_trang }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Kết cấu mặt</label>
+          <select name="ket_cau_mat_id" class="form-select form-select-sm">
+            <option value="">—</option>
+            {% for k in ket_cau_mat_list %}
+            <option value="{{ k.id }}" {% if doan and doan.ket_cau_mat_id == k.id %}selected{% endif %}>{{ k.ma_ket_cau }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Đơn vị bảo dưỡng</label>
+          <select name="don_vi_bao_duong_id" class="form-select form-select-sm">
+            <option value="">—</option>
+            {% for d in don_vi_list %}
+            <option value="{{ d.id }}" {% if doan and doan.don_vi_bao_duong_id == d.id %}selected{% endif %}>{{ d.ma_don_vi }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3"><label class="form-label">Rộng mặt min (m)</label>
+          <input name="chieu_rong_mat_min" type="number" step="0.1" class="form-control form-control-sm"
+                 value="{{ doan.chieu_rong_mat_min if doan else '' }}"></div>
+        <div class="col-md-3"><label class="form-label">Rộng mặt max (m)</label>
+          <input name="chieu_rong_mat_max" type="number" step="0.1" class="form-control form-control-sm"
+                 value="{{ doan.chieu_rong_mat_max if doan else '' }}"></div>
+        <div class="col-md-3"><label class="form-label">Rộng nền min (m)</label>
+          <input name="chieu_rong_nen_min" type="number" step="0.1" class="form-control form-control-sm"
+                 value="{{ doan.chieu_rong_nen_min if doan else '' }}"></div>
+        <div class="col-md-3"><label class="form-label">Rộng nền max (m)</label>
+          <input name="chieu_rong_nen_max" type="number" step="0.1" class="form-control form-control-sm"
+                 value="{{ doan.chieu_rong_nen_max if doan else '' }}"></div>
+        <div class="col-12"><label class="form-label">Ghi chú</label>
+          <textarea name="ghi_chu" class="form-control form-control-sm" rows="2">{{ doan.ghi_chu if doan else '' }}</textarea></div>
+
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+          <a href="{% if doan %}/doan-tuyen/{{ doan.id }}{% else %}/doan-tuyen/{% endif %}"
+             class="btn btn-sm btn-outline-secondary">Hủy</a>
+          {% if doan %}
+          <form method="post" action="/doan-tuyen/{{ doan.id }}/xoa" class="ms-auto"
+                onsubmit="return confirm('Xóa đoạn {{ doan.ma_doan }}?')">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Xóa đoạn</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

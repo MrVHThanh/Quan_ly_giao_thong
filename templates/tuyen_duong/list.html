@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Tuyến đường{% endblock %}
+{% block page_title %}Danh sách tuyến đường{% endblock %}
+
+{% block topbar_actions %}
+<a href="/tuyen-duong/them" class="btn btn-sm btn-primary">
+  <i class="bi bi-plus-lg me-1"></i>Thêm tuyến
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover table-sm mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Mã tuyến</th>
+          <th>Tên tuyến</th>
+          <th>Cấp QL</th>
+          <th class="text-end">Dài QL (km)</th>
+          <th class="text-end">Dài TT (km)</th>
+          <th class="text-center">GeoJSON</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tuyen_list %}
+        <tr>
+          <td><a href="/tuyen-duong/{{ t.id }}" class="fw-semibold text-decoration-none">{{ t.ma_tuyen }}</a></td>
+          <td>{{ t.ten_tuyen }}</td>
+          <td><span class="badge bg-secondary">{{ t.cap_quan_ly_id }}</span></td>
+          <td class="text-end">{{ "%.3f"|format(t.chieu_dai_quan_ly or 0) }}</td>
+          <td class="text-end">{{ "%.3f"|format(t.chieu_dai_thuc_te or 0) }}</td>
+          <td class="text-center">
+            {% if t.id in co_geo %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle">✓</span>
+            {% else %}
+              <span class="badge bg-light text-muted border">—</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <a href="/tuyen-duong/{{ t.id }}/sua" class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.75rem;">Sửa</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">Chưa có tuyến đường nào.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

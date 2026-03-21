@@ -1,76 +1,63 @@
+"""
+Model: DoanDiChung — Đoạn đi chung giữa các tuyến
+Plain object thuần túy. KHÔNG logic nghiệp vụ, KHÔNG gọi DB.
+
+Cấu trúc mới hoàn toàn:
+- Mỗi bản ghi tham chiếu đúng 1 đoạn vật lý (doan_id)
+- Nếu đoạn đi chung vắt qua nhiều đoạn vật lý → tách thành nhiều bản ghi riêng
+- Lưu lý trình 2 chiều: theo tuyến đi nhờ VÀ theo tuyến chủ
+- chieu_dai_di_chung KHÔNG lưu — tính từ ly_trinh_cuoi - ly_trinh_dau
+
+Ví dụ mã: DDC-DT159-QL4E-01-001
+  → DT159 đi nhờ trên đoạn QL4E-01 (đoạn vật lý số 001)
+"""
+
+from typing import Optional
+
+
 class DoanDiChung:
-    """
-    Đoạn đi chung: một đoạn vật lý thuộc tuyến chủ sở hữu,
-    nhưng được một tuyến khác đi chung với lý trình riêng.
-
-    Ví dụ:
-        doan_id = đoạn 3 (thuộc QL4D)
-        tuyen_id = QL279 (tuyến đi chung)
-        ly_trinh_dau/cuoi = lý trình theo QL279
-    """
-
     def __init__(
         self,
-        tuyen_id,
-        doan_id,
-        ly_trinh_dau,
-        ly_trinh_cuoi,
-        ghi_chu=None,
-        id=None,
-        created_at=None
+        id: Optional[int] = None,
+        ma_doan_di_chung: Optional[str] = None,          # VD: DDC-DT159-QL4E-01-001
+        tuyen_di_chung_id: Optional[int] = None,         # FK→tuyen_duong (tuyến đi nhờ: DT159)
+        tuyen_chinh_id: Optional[int] = None,            # FK→tuyen_duong (tuyến chủ: QL4E)
+        doan_id: Optional[int] = None,                   # FK→doan_tuyen (đoạn vật lý: QL4E-01)
+        ly_trinh_dau_di_chung: Optional[float] = None,   # lý trình theo tuyến đi nhờ
+        ly_trinh_cuoi_di_chung: Optional[float] = None,  # lý trình theo tuyến đi nhờ
+        ly_trinh_dau_tuyen_chinh: Optional[float] = None, # lý trình theo tuyến chủ
+        ly_trinh_cuoi_tuyen_chinh: Optional[float] = None, # lý trình theo tuyến chủ
+        ghi_chu: Optional[str] = None,
+        created_at: Optional[str] = None,
     ):
         self.id = id
-        self.tuyen_id = tuyen_id
+        self.ma_doan_di_chung = ma_doan_di_chung
+        self.tuyen_di_chung_id = tuyen_di_chung_id
+        self.tuyen_chinh_id = tuyen_chinh_id
         self.doan_id = doan_id
-        self.ly_trinh_dau = ly_trinh_dau
-        self.ly_trinh_cuoi = ly_trinh_cuoi
+        self.ly_trinh_dau_di_chung = ly_trinh_dau_di_chung
+        self.ly_trinh_cuoi_di_chung = ly_trinh_cuoi_di_chung
+        self.ly_trinh_dau_tuyen_chinh = ly_trinh_dau_tuyen_chinh
+        self.ly_trinh_cuoi_tuyen_chinh = ly_trinh_cuoi_tuyen_chinh
         self.ghi_chu = ghi_chu
         self.created_at = created_at
 
-        self._validate()
-
-    # ==========================
-    # PROPERTY CHIỀU DÀI
-    # ==========================
+    @property
+    def chieu_dai_di_chung(self) -> Optional[float]:
+        """Chiều dài đoạn đi chung theo tuyến đi nhờ (km)."""
+        if self.ly_trinh_dau_di_chung is not None and self.ly_trinh_cuoi_di_chung is not None:
+            return round(self.ly_trinh_cuoi_di_chung - self.ly_trinh_dau_di_chung, 3)
+        return None
 
     @property
-    def chieu_dai(self):
-        if self.ly_trinh_dau is None or self.ly_trinh_cuoi is None:
-            return None
-        return self.ly_trinh_cuoi - self.ly_trinh_dau
+    def chieu_dai_tuyen_chinh(self) -> Optional[float]:
+        """Chiều dài đoạn đi chung theo tuyến chủ (km)."""
+        if self.ly_trinh_dau_tuyen_chinh is not None and self.ly_trinh_cuoi_tuyen_chinh is not None:
+            return round(self.ly_trinh_cuoi_tuyen_chinh - self.ly_trinh_dau_tuyen_chinh, 3)
+        return None
 
-    # ==========================
-    # VALIDATION
-    # ==========================
-
-    def _validate(self):
-        if (
-            self.ly_trinh_dau is not None
-            and self.ly_trinh_cuoi is not None
-        ):
-            if self.ly_trinh_cuoi <= self.ly_trinh_dau:
-                raise ValueError("Ly trinh cuoi phai lon hon ly trinh dau.")
-
-    # ==========================
-    # HIỂN THỊ
-    # ==========================
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
-            f"<DoanDiChung tuyen_id={self.tuyen_id} | "
-            f"doan_id={self.doan_id} | "
-            f"Km{self.ly_trinh_dau}→Km{self.ly_trinh_cuoi} | "
-            f"{self.chieu_dai} km>"
+            f"<DoanDiChung id={self.id} ma={self.ma_doan_di_chung} "
+            f"tuyen_di_chung_id={self.tuyen_di_chung_id} doan_id={self.doan_id}>"
         )
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "tuyen_id": self.tuyen_id,
-            "doan_id": self.doan_id,
-            "ly_trinh_dau": self.ly_trinh_dau,
-            "ly_trinh_cuoi": self.ly_trinh_cuoi,
-            "chieu_dai": self.chieu_dai,
-            "ghi_chu": self.ghi_chu,
-            "created_at": self.created_at
-        }

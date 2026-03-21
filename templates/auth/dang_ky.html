@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đăng ký — GT Lào Cai</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+<style>body{background:#f0f4f8;display:flex;align-items:center;justify-content:center;min-height:100vh;}</style>
+</head><body>
+<div class="bg-white rounded-3 p-4 shadow-sm" style="width:420px">
+  <h6 class="mb-3">🛣️ Đăng ký tài khoản</h6>
+  {% if loi %}<div class="alert alert-danger py-2 small">{{ loi }}</div>{% endif %}
+  <form method="post" action="/auth/dang-ky">
+    <div class="mb-2"><label class="form-label small">Tên đăng nhập *</label><input name="ten_dang_nhap" class="form-control form-control-sm" required></div>
+    <div class="mb-2"><label class="form-label small">Mật khẩu *</label><input name="mat_khau" type="password" class="form-control form-control-sm" required></div>
+    <div class="mb-2"><label class="form-label small">Họ tên *</label><input name="ho_ten" class="form-control form-control-sm" required></div>
+    <div class="mb-2"><label class="form-label small">Chức vụ</label><input name="chuc_vu" class="form-control form-control-sm"></div>
+    <div class="mb-2"><label class="form-label small">Email</label><input name="email" type="email" class="form-control form-control-sm"></div>
+    <div class="mb-3"><label class="form-label small">Số điện thoại</label><input name="so_dien_thoai" class="form-control form-control-sm"></div>
+    <button type="submit" class="btn btn-primary btn-sm w-100">Gửi đăng ký</button>
+  </form>
+  <div class="text-center mt-2 small"><a href="/auth/login">Quay lại đăng nhập</a></div>
+</div></body></html>

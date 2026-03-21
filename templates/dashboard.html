@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Quản lý Đường bộ Lào Cai{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div id="dashboard-content">
+  <div class="row g-3 mb-4" id="stat-cards">
+    <div class="col-md-3"><div class="card stat-card blue p-3">
+      <div class="text-muted mb-1" style="font-size:.75rem;">TỔNG TUYẾN ĐƯỜNG</div>
+      <div class="fs-3 fw-bold text-primary" id="stat-tuyen">—</div>
+    </div></div>
+    <div class="col-md-3"><div class="card stat-card green p-3">
+      <div class="text-muted mb-1" style="font-size:.75rem;">CHIỀU DÀI QUẢN LÝ (KM)</div>
+      <div class="fs-3 fw-bold text-success" id="stat-ql">—</div>
+    </div></div>
+    <div class="col-md-3"><div class="card stat-card orange p-3">
+      <div class="text-muted mb-1" style="font-size:.75rem;">TỔNG ĐOẠN TUYẾN</div>
+      <div class="fs-3 fw-bold text-warning" id="stat-doan">—</div>
+    </div></div>
+    <div class="col-md-3"><div class="card stat-card purple p-3">
+      <div class="text-muted mb-1" style="font-size:.75rem;">ĐOẠN ĐI CHUNG</div>
+      <div class="fs-3 fw-bold text-purple" id="stat-ddc" style="color:#6f42c1">—</div>
+    </div></div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Theo cấp quản lý -->
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header bg-white fw-semibold py-2">Theo cấp quản lý</div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0" id="tbl-cap">
+            <thead><tr><th>Cấp</th><th class="text-end">Số tuyến</th><th class="text-end">Dài (km)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Theo tình trạng -->
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header bg-white fw-semibold py-2">Theo tình trạng mặt đường</div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0" id="tbl-tt">
+            <thead><tr><th>Tình trạng</th><th class="text-end">Đoạn</th><th class="text-end">Dài (km)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Theo kết cấu mặt -->
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header bg-white fw-semibold py-2">Theo kết cấu mặt đường</div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0" id="tbl-kcm">
+            <thead><tr><th>Kết cấu</th><th class="text-end">Đoạn</th><th class="text-end">Dài (km)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+fetch('/thong-ke/api/toan-tinh')
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('stat-tuyen').textContent = d.tong_so_tuyen ?? '—';
+    document.getElementById('stat-ql').textContent    = (d.tong_chieu_dai_quan_ly ?? 0).toFixed(2);
+    document.getElementById('stat-doan').textContent  = d.tong_so_doan ?? '—';
+    document.getElementById('stat-ddc').textContent   = d.tong_so_doan_di_chung ?? '—';
+
+    // Bảng cấp quản lý
+    const tbCap = document.querySelector('#tbl-cap tbody');
+    (d.theo_cap_quan_ly || []).forEach(r => {
+      tbCap.innerHTML += `<tr>
+        <td><span class="badge bg-secondary badge-cap">${r.ma_cap}</span> ${r.ten_cap}</td>
+        <td class="text-end">${r.so_tuyen ?? 0}</td>
+        <td class="text-end">${(r.chieu_dai_quan_ly ?? 0).toFixed(2)}</td></tr>`;
+    });
+
+    // Bảng tình trạng
+    const MAU_TT = {TOT:'#2ECC71',TB:'#F39C12',KEM:'#E67E22',HH_NANG:'#E74C3C',
+                    THI_CONG:'#3498DB',BAO_TRI:'#9B59B6',TAM_DONG:'#95A5A6',NGUNG:'#7F8C8D',CHUA_XD:'#BDC3C7'};
+    const tbTT = document.querySelector('#tbl-tt tbody');
+    (d.theo_tinh_trang || []).filter(r => r.tong_chieu_dai).forEach(r => {
+      const mau = MAU_TT[r.ma_tinh_trang] || '#aaa';
+      tbTT.innerHTML += `<tr>
+        <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${mau};margin-right:5px"></span>${r.ten_tinh_trang}</td>
+        <td class="text-end">${r.so_doan ?? 0}</td>
+        <td class="text-end">${(r.tong_chieu_dai ?? 0).toFixed(2)}</td></tr>`;
+    });
+
+    // Bảng kết cấu mặt
+    const tbKCM = document.querySelector('#tbl-kcm tbody');
+    (d.theo_ket_cau_mat || []).filter(r => r.tong_chieu_dai).forEach(r => {
+      tbKCM.innerHTML += `<tr>
+        <td><span class="badge bg-light text-dark border badge-cap">${r.ma_ket_cau}</span> ${r.ten_ket_cau}</td>
+        <td class="text-end">${r.so_doan ?? 0}</td>
+        <td class="text-end">${(r.tong_chieu_dai ?? 0).toFixed(2)}</td></tr>`;
+    });
+  })
+  .catch(() => document.getElementById('dashboard-content').innerHTML +=
+    '<div class="alert alert-warning mt-3">Không thể tải dữ liệu thống kê.</div>');
+</script>
+{% endblock %}

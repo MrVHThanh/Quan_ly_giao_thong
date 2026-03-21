@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng nhập — Quản lý Đường bộ Lào Cai</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+  <style>
+    body { background:#f0f4f8; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-box { background:#fff; border-radius:12px; padding:2.5rem; width:100%; max-width:380px; box-shadow:0 4px 20px rgba(0,0,0,.1); }
+    .brand { color:#1a3a5c; font-weight:700; font-size:1.2rem; margin-bottom:1.5rem; }
+  </style>
+</head>
+<body>
+<div class="login-box">
+  <div class="brand text-center">🛣️ GT Lào Cai</div>
+  <h6 class="text-muted text-center mb-3">Đăng nhập hệ thống</h6>
+  {% if loi %}
+  <div class="alert alert-danger py-2 small">{{ loi }}</div>
+  {% endif %}
+  <form method="post" action="/auth/login">
+    <div class="mb-3">
+      <label class="form-label small">Tên đăng nhập</label>
+      <input name="ten_dang_nhap" class="form-control" required autofocus>
+    </div>
+    <div class="mb-3">
+      <label class="form-label small">Mật khẩu</label>
+      <input name="mat_khau" type="password" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+  </form>
+  <hr class="my-3">
+  <div class="text-center small">
+    <a href="/auth/dang-ky">Đăng ký tài khoản mới</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,54 +1,100 @@
-from models.cap_quan_ly import CapQuanLy
-from repositories import cap_quan_ly_repository as repo
+"""
+Service: CapQuanLy — Cấp quản lý đường
+Toàn bộ validation + business logic tập trung ở đây.
+Model chỉ chứa __init__ và @property.
+"""
+
+import sqlite3
+from typing import Optional, List
+
+import models.cap_quan_ly as cap_quan_ly_model
+import repositories.cap_quan_ly_repository as cap_quan_ly_repo
 
 
-def lay_tat_ca():
-    rows = repo.lay_tat_ca()
-    return [CapQuanLy(*row) for row in rows]
+class CapQuanLyServiceError(Exception):
+    pass
 
 
-def lay_theo_ma(ma_cap):
-    row = repo.lay_theo_ma(ma_cap)
-    return CapQuanLy(*row) if row else None
+def lay_tat_ca(conn: sqlite3.Connection) -> List[cap_quan_ly_model.CapQuanLy]:
+    return cap_quan_ly_repo.lay_tat_ca(conn)
 
 
-def lay_theo_ma_hoat_dong(ma_cap):
-    row = repo.lay_theo_ma_hoat_dong(ma_cap)
-    return CapQuanLy(*row) if row else None
+def lay_dang_hoat_dong(conn: sqlite3.Connection) -> List[cap_quan_ly_model.CapQuanLy]:
+    return cap_quan_ly_repo.lay_dang_hoat_dong(conn)
 
 
-def lay_theo_id_hoat_dong(id):
-    row = repo.lay_theo_id_hoat_dong(id)
-    return CapQuanLy(*row) if row else None
+def lay_theo_id(conn: sqlite3.Connection, id: int) -> cap_quan_ly_model.CapQuanLy:
+    obj = cap_quan_ly_repo.lay_theo_id(conn, id)
+    if obj is None:
+        raise CapQuanLyServiceError(f"Không tìm thấy cấp quản lý id={id}.")
+    return obj
 
 
-def them_cap_quan_ly(cap: CapQuanLy):
-    try:
-        last_id = repo.them_cap_quan_ly(
-            cap.ma_cap,
-            cap.ten_cap,
-            cap.mo_ta,
-            cap.thu_tu_hien_thi,
-            cap.is_active
-        )
-        cap.id = last_id
-    except Exception:
-        raise ValueError("Ma cap quan ly da ton tai!")
-    return cap
+def lay_theo_ma(conn: sqlite3.Connection, ma_cap: str) -> cap_quan_ly_model.CapQuanLy:
+    obj = cap_quan_ly_repo.lay_theo_ma(conn, ma_cap)
+    if obj is None:
+        raise CapQuanLyServiceError(f"Không tìm thấy cấp quản lý mã '{ma_cap}'.")
+    return obj
 
 
-def get_or_create_cap_quan_ly(cap: CapQuanLy):
-    existing = lay_theo_ma(cap.ma_cap)
+def them(
+    conn: sqlite3.Connection,
+    ma_cap: str,
+    ten_cap: str,
+    mo_ta: Optional[str] = None,
+    thu_tu_hien_thi: Optional[int] = None,
+) -> cap_quan_ly_model.CapQuanLy:
+    _validate_ma(ma_cap)
+    _validate_ten(ten_cap)
+    if cap_quan_ly_repo.lay_theo_ma(conn, ma_cap) is not None:
+        raise CapQuanLyServiceError(f"Mã cấp quản lý '{ma_cap}' đã tồn tại.")
 
-    if existing:
-        # Nếu tồn tại nhưng bị soft delete → khôi phục
-        if existing.is_active == 0:
-            repo.khoi_phuc_cap_quan_ly(existing.id)
-            existing.is_active = 1
-        return existing
+    obj = cap_quan_ly_model.CapQuanLy(
+        ma_cap=ma_cap.strip().upper(),
+        ten_cap=ten_cap.strip(),
+        mo_ta=mo_ta,
+        thu_tu_hien_thi=thu_tu_hien_thi,
+        is_active=1,
+    )
+    obj.id = cap_quan_ly_repo.them(conn, obj)
+    return obj
 
-    return them_cap_quan_ly(cap)
+
+def sua(
+    conn: sqlite3.Connection,
+    id: int,
+    ten_cap: str,
+    mo_ta: Optional[str] = None,
+    thu_tu_hien_thi: Optional[int] = None,
+) -> cap_quan_ly_model.CapQuanLy:
+    obj = lay_theo_id(conn, id)
+    _validate_ten(ten_cap)
+    obj.ten_cap = ten_cap.strip()
+    obj.mo_ta = mo_ta
+    obj.thu_tu_hien_thi = thu_tu_hien_thi
+    cap_quan_ly_repo.sua(conn, obj)
+    return obj
 
 
-def khoi_phuc_cap_quan_ly(id):
-    repo.khoi_phuc_cap_quan_ly(id)
+def xoa_mem(conn: sqlite3.Connection, id: int) -> None:
+    lay_theo_id(conn, id)  # kiểm tra tồn tại
+    cap_quan_ly_repo.xoa_mem(conn, id)
+
+
+def khoi_phuc(conn: sqlite3.Connection, id: int) -> None:
+    lay_theo_id(conn, id)
+    cap_quan_ly_repo.khoi_phuc(conn, id)
+
+
+# ── Validation nội bộ ──────────────────────────────────────────────────────
+
+def _validate_ma(ma_cap: str) -> None:
+    if not ma_cap or not ma_cap.strip():
+        raise CapQuanLyServiceError("Mã cấp quản lý không được để trống.")
+    if len(ma_cap.strip()) > 20:
+        raise CapQuanLyServiceError("Mã cấp quản lý không được vượt quá 20 ký tự.")
+
+
+def _validate_ten(ten_cap: str) -> None:
+    if not ten_cap or not ten_cap.strip():
+        raise CapQuanLyServiceError("Tên cấp quản lý không được để trống.")

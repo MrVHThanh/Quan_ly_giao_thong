@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Bản đồ — Quản lý Đường bộ Lào Cai{% endblock %}
+{% block page_title %}Bản đồ tuyến đường{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  #map { height: calc(100vh - 130px); border-radius: 8px; }
+  .map-legend { background:#fff; padding:10px 14px; border-radius:8px; box-shadow:0 1px 5px rgba(0,0,0,.2); font-size:.8rem; }
+  .legend-item { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .legend-line { width:24px; height:3px; border-radius:2px; }
+  .leaflet-popup-content { font-size:.85rem; min-width:180px; }
+  .popup-title { font-weight:700; margin-bottom:4px; }
+  #sidebar-map { position:absolute; top:70px; right:10px; width:220px; z-index:999;
+                 background:#fff; border-radius:8px; box-shadow:0 1px 8px rgba(0,0,0,.15); padding:12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="position-relative">
+  <!-- Bộ lọc nổi -->
+  <div id="sidebar-map">
+    <div class="fw-semibold mb-2" style="font-size:.82rem;">Bộ lọc</div>
+    <div class="mb-2">
+      <label class="form-label mb-1" style="font-size:.75rem;">Cấp quản lý</label>
+      <div id="filter-cap"></div>
+    </div>
+    <hr class="my-2">
+    <div id="map-info" class="text-muted" style="font-size:.78rem;">
+      Chọn tuyến để xem chi tiết
+    </div>
+  </div>
+  <div id="map"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const map = L.map('map', { center: [22.3, 104.1], zoom: 9 });
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors', maxZoom: 18
+}).addTo(map);
+
+const MAU_CAP = { QL: '#e74c3c', DT: '#3498db', DX: '#27ae60', CT: '#8e44ad' };
+const layers = {};
+let allFeatures = [];
+
+fetch('/ban-do/api/geo-all')
+  .then(r => r.json())
+  .then(data => {
+    allFeatures = data.features;
+
+    // Tạo bộ lọc cấp quản lý
+    const caps = [...new Set(allFeatures.map(f => f.properties.cap_quan_ly))].sort();
+    const filterDiv = document.getElementById('filter-cap');
+    caps.forEach(cap => {
+      const mau = MAU_CAP[cap] || '#888';
+      filterDiv.innerHTML += `
+        <div class="form-check form-check-sm">
+          <input class="form-check-input" type="checkbox" value="${cap}" id="chk-${cap}" checked
+                 onchange="toggleCap('${cap}', this.checked)">
+          <label class="form-check-label" for="chk-${cap}" style="font-size:.78rem;">
+            <span style="display:inline-block;width:16px;height:3px;background:${mau};border-radius:2px;vertical-align:middle;margin-right:3px"></span>
+            ${cap}
+          </label>
+        </div>`;
+    });
+
+    // Vẽ tất cả tuyến
+    allFeatures.forEach(f => {
+      const p = f.properties;
+      const mau = MAU_CAP[p.cap_quan_ly] || '#888';
+      const line = L.geoJSON(f, {
+        style: { color: mau, weight: 3, opacity: .85 }
+      }).addTo(map);
+
+      line.on('click', () => {
+        document.getElementById('map-info').innerHTML = `
+          <div class="popup-title">${p.ten_tuyen}</div>
+          <div><b>Mã:</b> ${p.ma_tuyen}</div>
+          <div><b>Chiều dài QL:</b> ${(p.chieu_dai_quan_ly||0).toFixed(3)} km</div>
+          <div><b>Dài GPS:</b> ${(p.chieu_dai_gps||0).toFixed(3)} km</div>
+          <div class="mt-1"><a href="/tuyen-duong/${p.tuyen_id}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:.75rem;">Chi tiết →</a></div>`;
+      });
+      line.bindTooltip(p.ma_tuyen, { permanent: false, direction: 'top', className: 'fw-semibold' });
+
+      if (!layers[p.cap_quan_ly]) layers[p.cap_quan_ly] = [];
+      layers[p.cap_quan_ly].push(line);
+    });
+
+    if (allFeatures.length > 0) {
+      const geojson = L.geoJSON({ type: 'FeatureCollection', features: allFeatures });
+      map.fitBounds(geojson.getBounds(), { padding: [20, 20] });
+    }
+  })
+  .catch(() => {
+    document.getElementById('map-info').innerHTML =
+      '<span class="text-danger">Chưa có dữ liệu GeoJSON. Chạy import_geojson.py trước.</span>';
+  });
+
+function toggleCap(cap, show) {
+  (layers[cap] || []).forEach(l => show ? l.addTo(map) : map.removeLayer(l));
+}
+</script>
+{% endblock %}

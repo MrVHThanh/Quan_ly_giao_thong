@@ -1,96 +1,105 @@
-class ThongKeCapKyThuat:
-    """
-    Model kết quả thống kê một dòng:
-    (cap_quan_ly × cap_ky_thuat → chieu_dai)
-    """
+"""
+Model: ThongKe — Kết quả thống kê tổng hợp
+Plain object thuần túy. KHÔNG logic nghiệp vụ, KHÔNG gọi DB.
+
+Dùng để truyền kết quả thống kê từ Service/Repository lên tầng trên.
+Cập nhật: thêm thống kê theo ket_cau_mat_duong.
+"""
+
+from typing import Optional, List, Dict
+
+
+class ThongKeTuyen:
+    """Thống kê tổng hợp cho một tuyến đường."""
 
     def __init__(
         self,
-        ma_cap_quan_ly,
-        ten_cap_quan_ly,
-        thu_tu_cap_quan_ly,
-        ma_cap_ky_thuat,
-        ten_cap_ky_thuat,
-        thu_tu_cap_ky_thuat,
-        tong_chieu_dai
+        tuyen_id: Optional[int] = None,
+        ma_tuyen: Optional[str] = None,
+        ten_tuyen: Optional[str] = None,
+        tong_so_doan: Optional[int] = None,
+        chieu_dai_quan_ly: Optional[float] = None,
+        chieu_dai_thuc_te: Optional[float] = None,
+        chieu_dai_di_chung: Optional[float] = None,
+        # Theo tình trạng
+        chieu_dai_tot: Optional[float] = None,
+        chieu_dai_tb: Optional[float] = None,
+        chieu_dai_kem: Optional[float] = None,
+        chieu_dai_hu_hong_nang: Optional[float] = None,
+        chieu_dai_thi_cong: Optional[float] = None,
+        # Theo kết cấu mặt
+        chieu_dai_btn: Optional[float] = None,
+        chieu_dai_btxm: Optional[float] = None,
+        chieu_dai_hh: Optional[float] = None,
+        chieu_dai_ln: Optional[float] = None,
+        chieu_dai_cp: Optional[float] = None,
+        chieu_dai_dat: Optional[float] = None,
+        chieu_dai_btn_ln: Optional[float] = None,
+        chieu_dai_btxm_ln: Optional[float] = None,
     ):
-        self.ma_cap_quan_ly      = ma_cap_quan_ly
-        self.ten_cap_quan_ly     = ten_cap_quan_ly
-        self.thu_tu_cap_quan_ly  = thu_tu_cap_quan_ly
-        self.ma_cap_ky_thuat     = ma_cap_ky_thuat
-        self.ten_cap_ky_thuat    = ten_cap_ky_thuat
-        self.thu_tu_cap_ky_thuat = thu_tu_cap_ky_thuat
-        self.tong_chieu_dai      = round(tong_chieu_dai, 3)
+        self.tuyen_id = tuyen_id
+        self.ma_tuyen = ma_tuyen
+        self.ten_tuyen = ten_tuyen
+        self.tong_so_doan = tong_so_doan
+        self.chieu_dai_quan_ly = chieu_dai_quan_ly
+        self.chieu_dai_thuc_te = chieu_dai_thuc_te
+        self.chieu_dai_di_chung = chieu_dai_di_chung
+        # Tình trạng
+        self.chieu_dai_tot = chieu_dai_tot
+        self.chieu_dai_tb = chieu_dai_tb
+        self.chieu_dai_kem = chieu_dai_kem
+        self.chieu_dai_hu_hong_nang = chieu_dai_hu_hong_nang
+        self.chieu_dai_thi_cong = chieu_dai_thi_cong
+        # Kết cấu mặt
+        self.chieu_dai_btn = chieu_dai_btn
+        self.chieu_dai_btxm = chieu_dai_btxm
+        self.chieu_dai_hh = chieu_dai_hh
+        self.chieu_dai_ln = chieu_dai_ln
+        self.chieu_dai_cp = chieu_dai_cp
+        self.chieu_dai_dat = chieu_dai_dat
+        self.chieu_dai_btn_ln = chieu_dai_btn_ln
+        self.chieu_dai_btxm_ln = chieu_dai_btxm_ln
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
-            f"<ThongKeCapKyThuat "
-            f"[{self.ma_cap_quan_ly}] {self.ten_cap_quan_ly} | "
-            f"[{self.ma_cap_ky_thuat}] {self.ten_cap_ky_thuat} | "
-            f"{self.tong_chieu_dai} km>"
+            f"<ThongKeTuyen ma={self.ma_tuyen} "
+            f"ql={self.chieu_dai_quan_ly}km tt={self.chieu_dai_thuc_te}km>"
         )
 
-    def to_dict(self):
-        return {
-            "ma_cap_quan_ly":      self.ma_cap_quan_ly,
-            "ten_cap_quan_ly":     self.ten_cap_quan_ly,
-            "ma_cap_ky_thuat":     self.ma_cap_ky_thuat,
-            "ten_cap_ky_thuat":    self.ten_cap_ky_thuat,
-            "tong_chieu_dai":      self.tong_chieu_dai,
-        }
 
-class ThongKeCapKyThuatTheoTuyen:
-    """Tổng chiều dài theo cấp kỹ thuật của một tuyến."""
+class ThongKeToanTinh:
+    """Thống kê tổng hợp toàn tỉnh Lào Cai."""
 
     def __init__(
         self,
-        tuyen_id,
-        ma_cap_ky_thuat,
-        ten_cap_ky_thuat,
-        thu_tu_cap_ky_thuat,
-        tong_chieu_dai
+        tong_so_tuyen: Optional[int] = None,
+        tong_so_doan: Optional[int] = None,
+        tong_so_doan_di_chung: Optional[int] = None,
+        tong_chieu_dai_quan_ly: Optional[float] = None,
+        tong_chieu_dai_thuc_te: Optional[float] = None,
+        tong_chieu_dai_di_chung: Optional[float] = None,
+        # Thống kê theo cấp quản lý
+        theo_cap_quan_ly: Optional[List[Dict]] = None,
+        # Thống kê theo tình trạng
+        theo_tinh_trang: Optional[List[Dict]] = None,
+        # Thống kê theo kết cấu mặt
+        theo_ket_cau_mat: Optional[List[Dict]] = None,
+        # Thống kê theo cấp đường
+        theo_cap_duong: Optional[List[Dict]] = None,
     ):
-        self.tuyen_id            = tuyen_id
-        self.ma_cap_ky_thuat     = ma_cap_ky_thuat
-        self.ten_cap_ky_thuat    = ten_cap_ky_thuat
-        self.thu_tu_cap_ky_thuat = thu_tu_cap_ky_thuat
-        self.tong_chieu_dai      = round(tong_chieu_dai, 3)
+        self.tong_so_tuyen = tong_so_tuyen
+        self.tong_so_doan = tong_so_doan
+        self.tong_so_doan_di_chung = tong_so_doan_di_chung
+        self.tong_chieu_dai_quan_ly = tong_chieu_dai_quan_ly
+        self.tong_chieu_dai_thuc_te = tong_chieu_dai_thuc_te
+        self.tong_chieu_dai_di_chung = tong_chieu_dai_di_chung
+        self.theo_cap_quan_ly = theo_cap_quan_ly or []
+        self.theo_tinh_trang = theo_tinh_trang or []
+        self.theo_ket_cau_mat = theo_ket_cau_mat or []
+        self.theo_cap_duong = theo_cap_duong or []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
-            f"<ThongKeCapKyThuatTheoTuyen "
-            f"tuyen_id={self.tuyen_id} | "
-            f"[{self.ma_cap_ky_thuat}] {self.ten_cap_ky_thuat} | "
-            f"{self.tong_chieu_dai} km>"
-        )
-
-
-class ChiTietDoanTheoTuyen:
-    """Thông tin chi tiết một đoạn (chính hoặc đi chung) thuộc tuyến."""
-
-    def __init__(
-        self,
-        tuyen_id,
-        ma_doan,
-        ly_trinh_dau,
-        ly_trinh_cuoi,
-        chieu_dai,
-        ten_cap_ky_thuat,
-        ten_tinh_trang,
-        loai          # "CHINH" | "DI CHUNG"
-    ):
-        self.tuyen_id        = tuyen_id
-        self.ma_doan         = ma_doan
-        self.ly_trinh_dau    = ly_trinh_dau
-        self.ly_trinh_cuoi   = ly_trinh_cuoi
-        self.chieu_dai       = round(chieu_dai, 3) if chieu_dai else None
-        self.ten_cap_ky_thuat = ten_cap_ky_thuat
-        self.ten_tinh_trang  = ten_tinh_trang or "Chưa xác định"
-        self.loai            = loai
-
-    def __repr__(self):
-        return (
-            f"<ChiTietDoan {self.ma_doan} | "
-            f"Km{self.ly_trinh_dau}→Km{self.ly_trinh_cuoi} | "
-            f"{self.chieu_dai} km | {self.loai}>"
+            f"<ThongKeToanTinh tuyen={self.tong_so_tuyen} "
+            f"doan={self.tong_so_doan} ql={self.tong_chieu_dai_quan_ly}km>"
         )

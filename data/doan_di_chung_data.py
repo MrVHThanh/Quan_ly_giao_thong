@@ -1,157 +1,163 @@
 """
-Dữ liệu đoạn đi chung — chỉ chỉnh sửa file này khi cập nhật đoạn đi chung.
+Data: DoanDiChung — 15 bản ghi
+Nguồn: Sheet DoanDiChung | giao_thong_data_upadate.xlsx
 
-Lưu ý:
-- ma_doan trỏ đến đoạn vật lý của TUYẾN CHỦ (tuyến sở hữu đoạn đó).
-- ly_trinh_dau/cuoi là lý trình theo TUYẾN ĐI CHUNG (không phải tuyến chủ).
-- Các mục TODO cần bổ sung ma_doan thủ công khi tuyến chủ được nhập vào hệ thống.
+Lưu ý seed:
+- tuyen_di_chung_ma: seed tra ma_tuyen → tuyen_di_chung_id thực
+- tuyen_chinh_ma: seed tra ma_tuyen → tuyen_chinh_id thực
+- doan_ma: seed tra ma_doan → doan_id thực
+- ma_doan_di_chung: seed sinh tự động qua doan_di_chung_service._tao_ma_doan_di_chung()
 """
 
-DOAN_DI_CHUNG_CONFIG = [
-    # QL4D đi chung QL70 → đoạn QL70-05
+RECORDS = [
     {
-        "ma_tuyen_di_chung": "QL4D",
-        "ma_doan":           "QL70-05",
-        "ly_trinh_dau":      140.893,
-        "ly_trinh_cuoi":     149,
-        "ghi_chu":           "QL4D di chung qua doan QL70-05 (tuyen chu QL70)",
+        "tuyen_di_chung_ma": 'QL4D',
+        "tuyen_chinh_ma": 'QL70',
+        "doan_ma": 'QL70-09',
+        "ly_trinh_dau_di_chung": 140.893,
+        "ly_trinh_cuoi_di_chung": 149.0,
+        "ly_trinh_dau_tuyen_chinh": 189.9,
+        "ly_trinh_cuoi_tuyen_chinh": 198.0,
+        "ghi_chu": 'QL4D đi chung với QL70, chiều dài 8,107km',
     },
-    # QL4E đi chung QL70 → đoạn QL70-01
     {
-        "ma_tuyen_di_chung": "QL4E",
-        "ma_doan":           "QL70-01",
-        "ly_trinh_dau":      35.6,
-        "ly_trinh_cuoi":     36.975,
-        "ghi_chu":           "QL4E di chung qua doan QL70-01 (tuyen chu QL70)",
+        "tuyen_di_chung_ma": 'QL4E',
+        "tuyen_chinh_ma": 'QL70',
+        "doan_ma": 'QL70-08',
+        "ly_trinh_dau_di_chung": 35.6,
+        "ly_trinh_cuoi_di_chung": 36.975,
+        "ly_trinh_dau_tuyen_chinh": 159.143,
+        "ly_trinh_cuoi_tuyen_chinh": 160.5,
+        "ghi_chu": 'QL4E đi chung với QL70, chiều dài 1,375km',
     },
-    # TODO: QL4E đi chung QL4D Km79.757→Km82.957
-    # Chưa match được đoạn của tuyến chủ QL4D (tuyến chủ thuộc tỉnh khác quản lý).
-    # Bổ sung ma_doan sau khi có dữ liệu tuyến QL4D trong hệ thống.
-    # {
-    #     "ma_tuyen_di_chung": "QL4E",
-    #     "ma_doan":           "???",
-    #     "ly_trinh_dau":      79.757,
-    #     "ly_trinh_cuoi":     82.957,
-    #     "ghi_chu":           "QL4E di chung QL4D Km79.757-Km82.957",
-    # },
-    # TODO: QL32 đi chung QL37 Km162.0→Km172.0
-    # Chưa match được đoạn của tuyến chủ QL37 (tuyến chủ thuộc tỉnh khác quản lý).
-    # Bổ sung ma_doan sau khi có dữ liệu tuyến QL37 trong hệ thống.
-    # {
-    #     "ma_tuyen_di_chung": "QL32",
-    #     "ma_doan":           "???",
-    #     "ly_trinh_dau":      162,
-    #     "ly_trinh_cuoi":     172,
-    #     "ghi_chu":           "QL32 di chung QL37 Km162.0-Km172.0",
-    # },
-    # DT153 đi chung QL4E → đoạn QL4E-04
     {
-        "ma_tuyen_di_chung": "DT153",
-        "ma_doan":           "QL4E-04",
-        "ly_trinh_dau":      18.3,
-        "ly_trinh_cuoi":     21.1,
-        "ghi_chu":           "DT153 di chung qua doan QL4E-04 (tuyen chu QL4E)",
+        "tuyen_di_chung_ma": 'QL4E',
+        "tuyen_chinh_ma": 'QL4D',
+        "doan_ma": 'QL4D-04',
+        "ly_trinh_dau_di_chung": 79.757,
+        "ly_trinh_cuoi_di_chung": 82.957,
+        "ly_trinh_dau_tuyen_chinh": 137.1,
+        "ly_trinh_cuoi_tuyen_chinh": 140.3,
+        "ghi_chu": 'QL4E đi chung với QL4D, chiều dài 3,168km',
     },
-    # TODO: DT155 đi chung QL4D Km43.5→Km47.1
-    # Chưa match được đoạn của tuyến chủ QL4D (tuyến chủ thuộc tỉnh khác quản lý).
-    # Bổ sung ma_doan sau khi có dữ liệu tuyến QL4D trong hệ thống.
-    # {
-    #     "ma_tuyen_di_chung": "DT155",
-    #     "ma_doan":           "???",
-    #     "ly_trinh_dau":      43.5,
-    #     "ly_trinh_cuoi":     47.1,
-    #     "ghi_chu":           "DT155 di chung QL4D Km43.5-Km47.1",
-    # },
-    # TODO: DT159 đi chung QL4 Km12.0→Km13.24
-    # Chưa match được đoạn của tuyến chủ QL4 (tuyến chủ thuộc tỉnh khác quản lý).
-    # Bổ sung ma_doan sau khi có dữ liệu tuyến QL4 trong hệ thống.
-    # {
-    #     "ma_tuyen_di_chung": "DT159",
-    #     "ma_doan":           "???",
-    #     "ly_trinh_dau":      12,
-    #     "ly_trinh_cuoi":     13.24,
-    #     "ghi_chu":           "DT159 di chung QL4 Km12.0-Km13.24",
-    # },
-    # DT159 đi chung QL4E → đoạn QL4E-08
     {
-        "ma_tuyen_di_chung": "DT159",
-        "ma_doan":           "QL4E-08",
-        "ly_trinh_dau":      49.42,
-        "ly_trinh_cuoi":     61.02,
-        "ghi_chu":           "DT159 di chung qua doan QL4E-08 (tuyen chu QL4E)",
+        "tuyen_di_chung_ma": 'QL32',
+        "tuyen_chinh_ma": 'QL37',
+        "doan_ma": 'QL37-12',
+        "ly_trinh_dau_di_chung": 162.0,
+        "ly_trinh_cuoi_di_chung": 172.0,
+        "ly_trinh_dau_tuyen_chinh": 330.0,
+        "ly_trinh_cuoi_tuyen_chinh": 340.0,
+        "ghi_chu": 'QL32 đi chung với QL37, chiều dài 10km',
     },
-    # DT159 đi chung QL4E → đoạn QL4E-09
     {
-        "ma_tuyen_di_chung": "DT159",
-        "ma_doan":           "QL4E-09",
-        "ly_trinh_dau":      49.42,
-        "ly_trinh_cuoi":     61.02,
-        "ghi_chu":           "DT159 di chung qua doan QL4E-09 (tuyen chu QL4E)",
+        "tuyen_di_chung_ma": 'DT153',
+        "tuyen_chinh_ma": 'QL4E',
+        "doan_ma": 'QL4E-03',
+        "ly_trinh_dau_di_chung": 18.3,
+        "ly_trinh_cuoi_di_chung": 21.1,
+        "ly_trinh_dau_tuyen_chinh": 12.0,
+        "ly_trinh_cuoi_tuyen_chinh": 14.8,
+        "ghi_chu": 'DT153 đi chung với QL4E, chiều dài 2,8km',
     },
-    # DT159 đi chung QL4E → đoạn QL4E-10
     {
-        "ma_tuyen_di_chung": "DT159",
-        "ma_doan":           "QL4E-10",
-        "ly_trinh_dau":      49.42,
-        "ly_trinh_cuoi":     61.02,
-        "ghi_chu":           "DT159 di chung qua doan QL4E-10 (tuyen chu QL4E)",
+        "tuyen_di_chung_ma": 'DT155',
+        "tuyen_chinh_ma": 'QL4D',
+        "doan_ma": 'QL4D-01',
+        "ly_trinh_dau_di_chung": 43.5,
+        "ly_trinh_cuoi_di_chung": 47.1,
+        "ly_trinh_dau_tuyen_chinh": 96.4,
+        "ly_trinh_cuoi_tuyen_chinh": 100.0,
+        "ghi_chu": 'DT155 đi chung với QL4D, chiều dài 3,6km',
     },
-    # DT159 đi chung QL4E → đoạn QL4E-11
     {
-        "ma_tuyen_di_chung": "DT159",
-        "ma_doan":           "QL4E-11",
-        "ly_trinh_dau":      49.42,
-        "ly_trinh_cuoi":     61.02,
-        "ghi_chu":           "DT159 di chung qua doan QL4E-11 (tuyen chu QL4E)",
+        "tuyen_di_chung_ma": 'DT159',
+        "tuyen_chinh_ma": 'QL4',
+        "doan_ma": 'QL4-03',
+        "ly_trinh_dau_di_chung": 12.0,
+        "ly_trinh_cuoi_di_chung": 12.64,
+        "ly_trinh_dau_tuyen_chinh": 254.36,
+        "ly_trinh_cuoi_tuyen_chinh": 255.0,
+        "ghi_chu": 'DT159 đi chung với QL4, chiều dài 0,64km',
     },
-    # TODO: DT159 đi chung QL4 Km61.02→Km67.75
-    # Chưa match được đoạn của tuyến chủ QL4 (tuyến chủ thuộc tỉnh khác quản lý).
-    # Bổ sung ma_doan sau khi có dữ liệu tuyến QL4 trong hệ thống.
-    # {
-    #     "ma_tuyen_di_chung": "DT159",
-    #     "ma_doan":           "???",
-    #     "ly_trinh_dau":      61.02,
-    #     "ly_trinh_cuoi":     67.75,
-    #     "ghi_chu":           "DT159 di chung QL4 Km61.02-Km67.75",
-    # },
-    # DT160 đi chung QL279 → đoạn QL279-11
     {
-        "ma_tuyen_di_chung": "DT160",
-        "ma_doan":           "QL279-11",
-        "ly_trinh_dau":      81,
-        "ly_trinh_cuoi":     88,
-        "ghi_chu":           "DT160 di chung qua doan QL279-11 (tuyen chu QL279)",
+        "tuyen_di_chung_ma": 'DT159',
+        "tuyen_chinh_ma": 'QL4',
+        "doan_ma": 'QL4-04',
+        "ly_trinh_dau_di_chung": 12.64,
+        "ly_trinh_cuoi_di_chung": 13.24,
+        "ly_trinh_dau_tuyen_chinh": 255.0,
+        "ly_trinh_cuoi_tuyen_chinh": 255.6,
+        "ghi_chu": 'DT159 đi chung với QL4, chiều dài 0,6km',
     },
-    # DT160 đi chung QL279 → đoạn QL279-12
     {
-        "ma_tuyen_di_chung": "DT160",
-        "ma_doan":           "QL279-12",
-        "ly_trinh_dau":      81,
-        "ly_trinh_cuoi":     88,
-        "ghi_chu":           "DT160 di chung qua doan QL279-12 (tuyen chu QL279)",
+        "tuyen_di_chung_ma": 'DT159',
+        "tuyen_chinh_ma": 'QL4E',
+        "doan_ma": 'QL4E-01',
+        "ly_trinh_dau_di_chung": 49.42,
+        "ly_trinh_cuoi_di_chung": 52.42,
+        "ly_trinh_dau_tuyen_chinh": 0.0,
+        "ly_trinh_cuoi_tuyen_chinh": 3.0,
+        "ghi_chu": 'DT159 đi chung với QL4E, chiều dài 3km',
     },
-    # DT160 đi chung QL279 → đoạn QL279-13
     {
-        "ma_tuyen_di_chung": "DT160",
-        "ma_doan":           "QL279-13",
-        "ly_trinh_dau":      81,
-        "ly_trinh_cuoi":     88,
-        "ghi_chu":           "DT160 di chung qua doan QL279-13 (tuyen chu QL279)",
+        "tuyen_di_chung_ma": 'DT159',
+        "tuyen_chinh_ma": 'QL4E',
+        "doan_ma": 'QL4E-02',
+        "ly_trinh_dau_di_chung": 52.42,
+        "ly_trinh_cuoi_di_chung": 52.92,
+        "ly_trinh_dau_tuyen_chinh": 3.0,
+        "ly_trinh_cuoi_tuyen_chinh": 3.5,
+        "ghi_chu": 'DT159 đi chung với QL4E, chiều dài 0,5km',
     },
-    # DT162 đi chung DT151 → đoạn DT151-03
     {
-        "ma_tuyen_di_chung": "DT162",
-        "ma_doan":           "DT151-03",
-        "ly_trinh_dau":      32.6,
-        "ly_trinh_cuoi":     33,
-        "ghi_chu":           "DT162 di chung qua doan DT151-03 (tuyen chu DT151)",
+        "tuyen_di_chung_ma": 'DT159',
+        "tuyen_chinh_ma": 'QL4E',
+        "doan_ma": 'QL4E-03',
+        "ly_trinh_dau_di_chung": 52.92,
+        "ly_trinh_cuoi_di_chung": 61.02,
+        "ly_trinh_dau_tuyen_chinh": 3.5,
+        "ly_trinh_cuoi_tuyen_chinh": 11.6,
+        "ghi_chu": 'DT159 đi chung với QL4E, chiều dài 8,1km',
     },
-    # DX02 đi chung DT173 → đoạn DT173-01
     {
-        "ma_tuyen_di_chung": "DX02",
-        "ma_doan":           "DT173-01",
-        "ly_trinh_dau":      6.814,
-        "ly_trinh_cuoi":     8.09,
-        "ghi_chu":           "DX02 di chung qua doan DT173-01 (tuyen chu DT173)",
+        "tuyen_di_chung_ma": 'DT159',
+        "tuyen_chinh_ma": 'QL4',
+        "doan_ma": 'QL4-04',
+        "ly_trinh_dau_di_chung": 61.02,
+        "ly_trinh_cuoi_di_chung": 61.92,
+        "ly_trinh_dau_tuyen_chinh": 271.1,
+        "ly_trinh_cuoi_tuyen_chinh": 272.0,
+        "ghi_chu": 'DT159 đi chung với QL4, chiều dài 0,9km',
+    },
+    {
+        "tuyen_di_chung_ma": 'DT159',
+        "tuyen_chinh_ma": 'QL4',
+        "doan_ma": 'QL4-05',
+        "ly_trinh_dau_di_chung": 61.92,
+        "ly_trinh_cuoi_di_chung": 67.75,
+        "ly_trinh_dau_tuyen_chinh": 272.0,
+        "ly_trinh_cuoi_tuyen_chinh": 277.83,
+        "ghi_chu": 'DT159 đi chung với QL4, chiều dài 5,83km',
+    },
+    {
+        "tuyen_di_chung_ma": 'DT160',
+        "tuyen_chinh_ma": 'QL279',
+        "doan_ma": 'QL279-01',
+        "ly_trinh_dau_di_chung": 81.0,
+        "ly_trinh_cuoi_di_chung": 88.0,
+        "ly_trinh_dau_tuyen_chinh": 50.0,
+        "ly_trinh_cuoi_tuyen_chinh": 57.0,
+        "ghi_chu": 'DT160 đi chung với QL279, chiều dài 7km',
+    },
+    {
+        "tuyen_di_chung_ma": 'DX02',
+        "tuyen_chinh_ma": 'DT173',
+        "doan_ma": 'DT173-01',
+        "ly_trinh_dau_di_chung": 6.814,
+        "ly_trinh_cuoi_di_chung": 8.09,
+        "ly_trinh_dau_tuyen_chinh": 7.0,
+        "ly_trinh_cuoi_tuyen_chinh": 8.2,
+        "ghi_chu": 'DX02 đi chung với DT173, chiều dài 1,276km',
     },
 ]

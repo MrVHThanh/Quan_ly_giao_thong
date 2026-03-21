@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Duyệt tài khoản{% endblock %}
+{% block page_title %}Tài khoản chờ duyệt{% endblock %}
+{% block content %}
+<div class="card">
+<div class="card-body p-0">
+<table class="table table-sm table-hover mb-0">
+<thead class="table-light"><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Chức vụ</th><th>Ngày đăng ký</th><th>Phân quyền</th><th></th></tr></thead>
+<tbody>
+{% for u in danh_sach %}
+<tr>
+  <td class="fw-semibold">{{ u.ten_dang_nhap }}</td>
+  <td>{{ u.ho_ten }}</td>
+  <td class="text-muted small">{{ u.chuc_vu or '—' }}</td>
+  <td class="text-muted small">{{ u.created_at or '—' }}</td>
+  <td>
+    <form method="post" action="/auth/duyet/{{ u.id }}" class="d-flex gap-1">
+      <select name="loai_quyen" class="form-select form-select-sm" style="width:auto">
+        <option value="XEM">XEM</option>
+        <option value="BIEN_TAP" selected>BIEN_TAP</option>
+        <option value="ADMIN">ADMIN</option>
+      </select>
+      <button type="submit" class="btn btn-sm btn-success py-0 px-2">Duyệt</button>
+    </form>
+  </td>
+</tr>
+{% else %}
+<tr><td colspan="6" class="text-center text-muted py-4">Không có tài khoản nào chờ duyệt.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div></div>
+{% endblock %}
