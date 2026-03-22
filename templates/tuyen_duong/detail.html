@@ -17,62 +17,161 @@
     <div class="card">
       <div class="card-body">
         <div class="row">
-          <div class="col-6"><small class="text-muted">Điểm đầu</small><div>{{ tuyen.diem_dau or '—' }}</div></div>
-          <div class="col-6"><small class="text-muted">Điểm cuối</small><div>{{ tuyen.diem_cuoi or '—' }}</div></div>
-          <div class="col-4 mt-2"><small class="text-muted">CD quản lý</small><div class="fw-semibold">{{ "%.3f"|format(tuyen.chieu_dai_quan_ly or 0) }} km</div></div>
-          <div class="col-4 mt-2"><small class="text-muted">CD thực tế</small><div class="fw-semibold">{{ "%.3f"|format(tuyen.chieu_dai_thuc_te or 0) }} km</div></div>
-          <div class="col-4 mt-2"><small class="text-muted">Năm XD</small><div>{{ tuyen.nam_xay_dung or '—' }}</div></div>
+          <div class="col-6">
+            <small class="text-muted">Điểm đầu</small>
+            <div>{{ tuyen.diem_dau or '—' }}</div>
+          </div>
+          <div class="col-6">
+            <small class="text-muted">Điểm cuối</small>
+            <div>{{ tuyen.diem_cuoi or '—' }}</div>
+          </div>
+          <div class="col-4 mt-2">
+            <small class="text-muted">CD quản lý</small>
+            <div class="fw-semibold">{{ "%.3f"|format(tuyen.chieu_dai_quan_ly or 0) }} km</div>
+          </div>
+          <div class="col-4 mt-2">
+            <small class="text-muted">CD thực tế</small>
+            <div class="fw-semibold">{{ "%.3f"|format(tuyen.chieu_dai_thuc_te or 0) }} km</div>
+          </div>
+          <div class="col-4 mt-2">
+            <small class="text-muted">Năm XD</small>
+            <div>{{ tuyen.nam_xay_dung or '—' }}</div>
+          </div>
         </div>
-        {% if tuyen.ghi_chu %}<div class="mt-2 text-muted small">{{ tuyen.ghi_chu }}</div>{% endif %}
+        {% if tuyen.ghi_chu %}
+        <div class="mt-2 text-muted small">{{ tuyen.ghi_chu }}</div>
+        {% endif %}
       </div>
     </div>
   </div>
+
   <div class="col-md-4">
     <div class="card text-center p-3">
       {% if geo %}
-      <div class="text-success fw-semibold mb-1"><i class="bi bi-geo-alt-fill"></i> Có GeoJSON</div>
+      <div class="text-success fw-semibold mb-1">
+        <i class="bi bi-geo-alt-fill"></i> Có GeoJSON
+      </div>
       <div class="text-muted small">{{ geo.so_diem }} điểm GPS</div>
       <div class="text-muted small">{{ geo.chieu_dai_gps }} km (GPS)</div>
-      <a href="/ban-do/?focus={{ tuyen.id }}" class="btn btn-sm btn-outline-success mt-2">Xem bản đồ</a>
+      <a href="/ban-do/?focus={{ tuyen.id }}" class="btn btn-sm btn-outline-success mt-2">
+        Xem bản đồ
+      </a>
       {% else %}
       <div class="text-muted mb-1"><i class="bi bi-geo-alt"></i> Chưa có GeoJSON</div>
-      <div class="small text-muted">Chạy: python tools/import_geojson.py {{ tuyen.ma_tuyen }}.geojson</div>
+      <div class="small text-muted">
+        Chạy: python tools/import_geojson.py {{ tuyen.ma_tuyen }}.geojson
+      </div>
       {% endif %}
     </div>
   </div>
 </div>
 
-<!-- Thống kê đoạn -->
+{# ── BẢNG ĐOẠN TUYẾN ── #}
 <div class="card mb-3">
-  <div class="card-header bg-white fw-semibold py-2 d-flex justify-content-between">
+  <div class="card-header bg-white fw-semibold py-2 d-flex justify-content-between align-items-center">
     <span>Danh sách đoạn tuyến ({{ doan_list|length }} đoạn)</span>
-    <a href="/doan-tuyen/?tuyen_id={{ tuyen.id }}" class="btn btn-sm btn-outline-secondary py-0">Xem đầy đủ</a>
+    <div class="d-flex align-items-center gap-3">
+      {% if tong_chieu_dai %}
+      <span class="small text-muted">
+        Tổng CD quản lý: <strong>{{ "%.3f"|format(tong_chieu_dai) }} km</strong>
+      </span>
+      {% endif %}
+      <a href="/doan-tuyen/?tuyen_id={{ tuyen.id }}"
+         class="btn btn-sm btn-outline-secondary py-0">Xem đầy đủ</a>
+    </div>
   </div>
   <div class="card-body p-0">
     <table class="table table-sm table-hover mb-0">
       <thead class="table-light">
         <tr>
-          <th>Mã đoạn</th><th>Lý trình</th><th>Cấp đường</th>
-          <th>Tình trạng</th><th>Kết cấu mặt</th>
-          <th class="text-end">Dài (km)</th><th></th>
+          <th>Mã đoạn</th>
+          <th>Lý trình</th>
+          <th>Cấp đường</th>
+          <th>Tình trạng</th>
+          <th>Kết cấu mặt</th>
+          <th class="text-end">Dài (km)</th>
+          <th class="text-end">Tỉ lệ (%)</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {% for d in doan_list %}
+        {% set cap = map_cap.get(d.cap_duong_id) %}
+        {% set tt  = map_tt.get(d.tinh_trang_id) %}
+        {% set kcm = map_kcm.get(d.ket_cau_mat_id) %}
+        {% set cd  = d.chieu_dai or 0 %}
+        {% set ti_le = (cd / tong_chieu_dai * 100) if tong_chieu_dai else 0 %}
         <tr>
-          <td><a href="/doan-tuyen/{{ d.id }}" class="text-decoration-none fw-semibold">{{ d.ma_doan }}</a></td>
-          <td class="text-muted small">{{ d.ly_trinh_dau }}–{{ d.ly_trinh_cuoi }}</td>
-          <td>{{ d.cap_duong_id or '—' }}</td>
-          <td>{{ d.tinh_trang_id or '—' }}</td>
-          <td>{{ d.ket_cau_mat_id or '—' }}</td>
-          <td class="text-end">{{ "%.3f"|format(d.chieu_dai or 0) }}</td>
-          <td><a href="/doan-tuyen/{{ d.id }}/sua" class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;">Sửa</a></td>
+          {# Mã đoạn #}
+          <td>
+            <a href="/doan-tuyen/{{ d.id }}" class="text-decoration-none fw-semibold">
+              {{ d.ma_doan }}
+            </a>
+          </td>
+
+          {# Lý trình: Km39+000 – Km66+500 #}
+          <td class="text-muted small text-nowrap">
+            {{ d.ly_trinh_dau|ly_trinh }} – {{ d.ly_trinh_cuoi|ly_trinh }}
+          </td>
+
+          {# Cấp đường #}
+          <td class="small">
+            {% if cap %}
+              <span title="{{ cap.mo_ta or '' }}">{{ cap.ten_cap }}</span>
+            {% else %}—{% endif %}
+          </td>
+
+          {# Tình trạng: badge màu #}
+          <td class="small">
+            {% if tt %}
+              <span class="badge rounded-pill"
+                    style="background-color:{{ tt.mau_hien_thi or '#6c757d' }}; font-size:.72rem;">
+                {{ tt.ten_tinh_trang }}
+              </span>
+            {% else %}—{% endif %}
+          </td>
+
+          {# Kết cấu mặt #}
+          <td class="small">
+            {% if kcm %}{{ kcm.ten_ket_cau }}{% else %}—{% endif %}
+          </td>
+
+          {# Chiều dài #}
+          <td class="text-end">{{ "%.3f"|format(cd) }}</td>
+
+          {# Tỉ lệ % #}
+          <td class="text-end">
+            {% if tong_chieu_dai %}
+              <span class="small text-muted">{{ "%.1f"|format(ti_le) }}%</span>
+            {% else %}—{% endif %}
+          </td>
+
+          {# Sửa #}
+          <td>
+            <a href="/doan-tuyen/{{ d.id }}/sua"
+               class="btn btn-xs btn-outline-secondary py-0 px-2"
+               style="font-size:.73rem;">Sửa</a>
+          </td>
         </tr>
         {% else %}
-        <tr><td colspan="7" class="text-center text-muted py-3">Chưa có đoạn tuyến nào.</td></tr>
+        <tr>
+          <td colspan="8" class="text-center text-muted py-3">Chưa có đoạn tuyến nào.</td>
+        </tr>
         {% endfor %}
       </tbody>
+
+      {% if doan_list %}
+      <tfoot class="table-light fw-semibold">
+        <tr>
+          <td colspan="5" class="text-end small text-muted">Tổng cộng:</td>
+          <td class="text-end">{{ "%.3f"|format(tong_chieu_dai) }}</td>
+          <td class="text-end small">100%</td>
+          <td></td>
+        </tr>
+      </tfoot>
+      {% endif %}
     </table>
   </div>
 </div>
+
 {% endblock %}
