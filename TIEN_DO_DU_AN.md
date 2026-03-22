@@ -16,6 +16,13 @@
 
 ## TRẠNG THÁI TỔNG QUAN
 
+✅ HOÀN THÀNH
+
+⏳ TIẾP THEO
+
+CHƯA LÀM
+
+
 | Bước | Tên                            | Trạng thái    | Ghi chú |
 | ------ | ------------------------------- | --------------- | -------- |
 | 1      | Làm sạch dữ liệu Excel      | ✅ HOÀN THÀNH |          |
@@ -25,7 +32,7 @@
 | 5      | Viết lại Services             | ✅ HOÀN THÀNH |          |
 | 6      | Viết lại Data files từ Excel | ✅ HOÀN THÀNH |          |
 | 7      | Seeds + Migration               | ✅ HOÀN THÀNH |          |
-| 8      | GeoJSON Tools + Web FastAPI     | ⏳ TIẾP THEO   |          |
+| 8      | GeoJSON Tools + Web FastAPI     | ✅ HOÀN THÀNH |          |
 
 ---
 
@@ -377,33 +384,33 @@ import services.tuyen_duong_service as tuyen_duong_service
 
 | File                    | Trạng thái | Chức năng                        |
 | ----------------------- | ------------ | ---------------------------------- |
-| tools/excel_to_data.py  | [ ]          | Excel → 9 file data/*.py          |
-| tools/import_geojson.py | [ ]          | *.geojson → bảng tuyen_duong_geo |
-| tools/export_geojson.py | [ ]          | DB → xuất file *.geojson         |
+| tools/excel_to_data.py  | [ x]         | Excel → 9 file data/*.py          |
+| tools/import_geojson.py | [x ]         | *.geojson → bảng tuyen_duong_geo |
+| tools/export_geojson.py | [x ]         | DB → xuất file *.geojson         |
 
 ### 8B — Web Application
 
 | Module                    | Trạng thái |
 | ------------------------- | ------------ |
-| api/main.py               | [ ]          |
-| api/routes/auth.py        | [ ]          |
-| api/routes/tuyen_duong.py | [ ]          |
-| api/routes/doan_tuyen.py  | [ ]          |
-| api/routes/thong_ke.py    | [ ]          |
-| api/routes/ban_do.py      | [ ]          |
-| templates/dashboard.html  | [ ]          |
-| templates/ban_do.html     | [ ]          |
-| templates/tuyen_duong/    | [ ]          |
-| templates/doan_tuyen/     | [ ]          |
+| api/main.py               | [x ]         |
+| api/routes/auth.py        | [x ]         |
+| api/routes/tuyen_duong.py | [x ]         |
+| api/routes/doan_tuyen.py  | [x ]         |
+| api/routes/thong_ke.py    | [x ]         |
+| api/routes/ban_do.py      | [x ]         |
+| templates/dashboard.html  | [x ]         |
+| templates/ban_do.html     | [x ]         |
+| templates/tuyen_duong/    | [x ]         |
+| templates/doan_tuyen/     | [x ]         |
 
 ### Tính năng Web theo ưu tiên
 
-1. [ ] Đăng nhập, phân quyền (ADMIN/BIEN_TAP/XEM)
-2. [ ] Xem danh sách tuyến, đoạn — thống kê cơ bản
-3. [ ] Bản đồ Leaflet.js từ tuyen_duong_geo
-4. [ ] CRUD tuyến, đoạn, DDC
-5. [ ] Upload ảnh, đọc EXIF GPS
-6. [ ] Import/Export GeoJSON và Excel
+1. [X] Đăng nhập, phân quyền (ADMIN/BIEN_TAP/XEM)
+2. [X] Xem danh sách tuyến, đoạn — thống kê cơ bản
+3. [X] Bản đồ Leaflet.js từ tuyen_duong_geo
+4. [X] CRUD tuyến, đoạn, DDC
+5. [X] Upload ảnh, đọc EXIF GPS
+6. [X] Import/Export GeoJSON và Excel
 
 ---
 
@@ -471,7 +478,7 @@ import services.tuyen_duong_service as tuyen_duong_service
 | 22/3/2026       | 5      | Viết lại Services                    | ✅ HOÀN THÀNH     |                 |
 | 22/3/2026       | 6      | Viết lại Data files từ Excel        | ✅ HOÀN THÀNH     |                 |
 | 22/3/2026       | 7      | Seeds + Migration                      | ✅ HOÀN THÀNH     |                 |
-| 22/3/2026       | 8      | GeoJSON Tools + Web FastAPI            |                     |                 |
+| 22/3/2026       | 8      | GeoJSON Tools + Web FastAPI            | ✅ HOÀN THÀNH     |                 |
 |                 |        |                                        |                     |                 |
 |                 |        |                                        |                     |                 |
 
