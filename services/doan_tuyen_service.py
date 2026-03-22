@@ -48,6 +48,26 @@ def lay_theo_ket_cau_mat(
     return doan_tuyen_repo.lay_theo_ket_cau_mat(conn, ket_cau_mat_id)
 
 
+def lay_co_loc(
+    conn: sqlite3.Connection,
+    tuyen_id:      Optional[int] = None,
+    tinh_trang_id: Optional[int] = None,
+    cap_duong_id:  Optional[int] = None,
+) -> List[doan_tuyen_model.DoanTuyen]:
+    """
+    Lọc kết hợp nhiều tiêu chí (AND).
+    Truyền None cho tiêu chí nào để bỏ qua tiêu chí đó.
+    Không có tiêu chí nào → trả về toàn bộ danh sách.
+    Được gọi từ router thay cho chuỗi if/elif riêng lẻ.
+    """
+    return doan_tuyen_repo.lay_co_loc(
+        conn,
+        tuyen_id=tuyen_id,
+        tinh_trang_id=tinh_trang_id,
+        cap_duong_id=cap_duong_id,
+    )
+
+
 def them(
     conn: sqlite3.Connection,
     ma_doan: str,

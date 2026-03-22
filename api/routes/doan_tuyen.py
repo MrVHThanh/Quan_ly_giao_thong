@@ -11,6 +11,8 @@ POST /doan-tuyen/{id}/xoa         → xóa đoạn (ADMIN)
 """
 
 import os, sys
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -32,30 +34,63 @@ router = APIRouter()
 templates = Jinja2Templates(directory=os.path.join(_ROOT, "templates"))
 
 
+def _to_int(val: Optional[str]) -> Optional[int]:
+    """Chuyển chuỗi rỗng / None → None; chuỗi số hợp lệ → int.
+    Tránh lỗi 422 khi form gửi chuỗi rỗng "" cho tham số kiểu int."""
+    try:
+        return int(val) if val else None
+    except (ValueError, TypeError):
+        return None
+
+
 @router.get("/", response_class=HTMLResponse)
 async def danh_sach(
     request: Request,
-    tuyen_id: int = Query(None),
-    tinh_trang_id: int = Query(None),
-    cap_duong_id: int = Query(None),
+    tuyen_id:      Optional[str] = Query(default=None),
+    tinh_trang_id: Optional[str] = Query(default=None),
+    cap_duong_id:  Optional[str] = Query(default=None),
     user=Depends(yeu_cau_dang_nhap), conn=Depends(get_db),
 ):
-    if tuyen_id:
-        doan_list = dt_service.lay_theo_tuyen_id(conn, tuyen_id)
-    elif tinh_trang_id:
-        doan_list = dt_service.lay_theo_tinh_trang(conn, tinh_trang_id)
-    elif cap_duong_id:
-        doan_list = dt_service.lay_theo_cap_duong(conn, cap_duong_id)
-    else:
-        from repositories.doan_tuyen_repository import lay_tat_ca
-        doan_list = lay_tat_ca(conn)
+    tuyen_id_int      = _to_int(tuyen_id)
+    tinh_trang_id_int = _to_int(tinh_trang_id)
+    cap_duong_id_int  = _to_int(cap_duong_id)
+
+    doan_list = dt_service.lay_co_loc(
+        conn,
+        tuyen_id=tuyen_id_int,
+        tinh_trang_id=tinh_trang_id_int,
+        cap_duong_id=cap_duong_id_int,
+    )
+
+    # --- Lookup maps: id → object (dùng trong template để hiển thị tên thay ID) ---
+    tuyen_list = td_repo.lay_tat_ca(conn)
+    tt_list    = tt_repo.lay_dang_hoat_dong(conn)
+    cap_list   = cd_repo.lay_dang_hoat_dong(conn)
+    kcm_list   = kcm_repo.lay_dang_hoat_dong(conn)
+
+    map_tuyen = {t.id: t for t in tuyen_list}
+    map_tt    = {t.id: t for t in tt_list}
+    map_cap   = {c.id: c for c in cap_list}
+    map_kcm   = {k.id: k for k in kcm_list}
+
+    # --- Tổng chiều dài để tính cột Tỉ lệ (%) ---
+    tong_chieu_dai = sum((d.chieu_dai or 0) for d in doan_list)
 
     return templates.TemplateResponse("doan_tuyen/list.html", {
         "request": request, "user": user,
-        "doan_list": doan_list,
-        "tuyen_list": td_repo.lay_tat_ca(conn),
-        "tinh_trang_list": tt_repo.lay_dang_hoat_dong(conn),
-        "bo_loc": {"tuyen_id": tuyen_id, "tinh_trang_id": tinh_trang_id},
+        "doan_list":       doan_list,
+        "tuyen_list":      tuyen_list,
+        "tinh_trang_list": tt_list,
+        "map_tuyen":       map_tuyen,
+        "map_tt":          map_tt,
+        "map_cap":         map_cap,
+        "map_kcm":         map_kcm,
+        "tong_chieu_dai":  tong_chieu_dai,
+        "bo_loc": {
+            "tuyen_id":      tuyen_id_int,
+            "tinh_trang_id": tinh_trang_id_int,
+            "cap_duong_id":  cap_duong_id_int,
+        },
     })
 
 
@@ -81,8 +116,11 @@ def _form_context(conn, doan=None, loi=None, user=None, request=None):
 
 
 @router.get("/them", response_class=HTMLResponse)
-async def form_them(request: Request, tuyen_id: int = Query(None),
-                    user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db)):
+async def form_them(
+    request: Request,
+    tuyen_id: Optional[str] = Query(default=None),
+    user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db),
+):
     return templates.TemplateResponse("doan_tuyen/form.html",
                                       _form_context(conn, user=user, request=request))
 

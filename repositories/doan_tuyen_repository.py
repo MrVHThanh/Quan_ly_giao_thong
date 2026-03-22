@@ -6,6 +6,7 @@ Thay đổi so với phiên bản cũ:
 - Dùng row["ten_cot"] thay vì row[0], row[7], row[8]...
 - Thêm 5 cột mới: ket_cau_mat_id, nam_lam_moi, ngay_cap_nhat_tinh_trang,
   updated_at, updated_by_id
+- Thêm hàm lay_co_loc(): lọc kết hợp nhiều tiêu chí (AND), tránh lỗi 422
 """
 
 import sqlite3
@@ -50,6 +51,37 @@ def lay_theo_tinh_trang(conn: sqlite3.Connection, tinh_trang_id: int) -> List[do
 def lay_theo_ket_cau_mat(conn: sqlite3.Connection, ket_cau_mat_id: int) -> List[doan_tuyen_model.DoanTuyen]:
     sql = "SELECT * FROM doan_tuyen WHERE ket_cau_mat_id = ? ORDER BY tuyen_id, ly_trinh_dau"
     rows = conn.execute(sql, (ket_cau_mat_id,)).fetchall()
+    return [_row_to_object(r) for r in rows]
+
+
+def lay_co_loc(
+    conn: sqlite3.Connection,
+    tuyen_id:      Optional[int] = None,
+    tinh_trang_id: Optional[int] = None,
+    cap_duong_id:  Optional[int] = None,
+) -> List[doan_tuyen_model.DoanTuyen]:
+    """
+    Lọc kết hợp: tất cả tiêu chí nào có giá trị đều được áp dụng (AND).
+    Nếu không có tiêu chí nào → trả về toàn bộ danh sách.
+    Được gọi từ router thay cho các hàm if/elif riêng lẻ.
+    """
+    conditions: List[str] = []
+    params: List[int] = []
+
+    if tuyen_id is not None:
+        conditions.append("tuyen_id = ?")
+        params.append(tuyen_id)
+    if tinh_trang_id is not None:
+        conditions.append("tinh_trang_id = ?")
+        params.append(tinh_trang_id)
+    if cap_duong_id is not None:
+        conditions.append("cap_duong_id = ?")
+        params.append(cap_duong_id)
+
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    sql   = f"SELECT * FROM doan_tuyen {where} ORDER BY tuyen_id, ly_trinh_dau"
+
+    rows = conn.execute(sql, params).fetchall()
     return [_row_to_object(r) for r in rows]
 
 
