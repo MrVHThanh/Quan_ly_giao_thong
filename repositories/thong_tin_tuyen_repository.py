@@ -41,9 +41,23 @@ def them(conn: sqlite3.Connection, obj: thong_tin_tuyen_model.ThongTinTuyen) -> 
 
 
 def cap_nhat(conn: sqlite3.Connection, obj: thong_tin_tuyen_model.ThongTinTuyen) -> bool:
-    """Cập nhật mo_ta theo id."""
-    sql = "UPDATE thong_tin_tuyen SET mo_ta = ? WHERE id = ?"
-    cur = conn.execute(sql, (obj.mo_ta, obj.id))
+    """Cập nhật toàn bộ nội dung mô tả theo id."""
+    sql = """
+        UPDATE thong_tin_tuyen
+        SET mo_ta              = ?,
+            ly_do_xay_dung     = ?,
+            dac_diem_dia_ly    = ?,
+            lich_su_hinh_thanh = ?,
+            y_nghia_kinh_te    = ?,
+            ghi_chu            = ?,
+            updated_at         = datetime('now', 'localtime')
+        WHERE id = ?
+    """
+    cur = conn.execute(sql, (
+        obj.mo_ta, obj.ly_do_xay_dung, obj.dac_diem_dia_ly,
+        obj.lich_su_hinh_thanh, obj.y_nghia_kinh_te, obj.ghi_chu,
+        obj.id,
+    ))
     conn.commit()
     return cur.rowcount > 0
 
@@ -79,4 +93,11 @@ def _row_to_object(row: sqlite3.Row) -> thong_tin_tuyen_model.ThongTinTuyen:
         id=row["id"],
         tuyen_id=row["tuyen_id"],
         mo_ta=row["mo_ta"],
+        ly_do_xay_dung=row["ly_do_xay_dung"],
+        dac_diem_dia_ly=row["dac_diem_dia_ly"],
+        lich_su_hinh_thanh=row["lich_su_hinh_thanh"],
+        y_nghia_kinh_te=row["y_nghia_kinh_te"],
+        ghi_chu=row["ghi_chu"],
+        created_at=row["created_at"],
+        updated_at=row["updated_at"],
     )

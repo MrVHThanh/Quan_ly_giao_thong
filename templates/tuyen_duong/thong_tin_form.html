@@ -21,7 +21,7 @@
 
   <div class="row g-3">
 
-    {# ── CỘT TRÁI: các trường nhập liệu ── #}
+    {# ── CỘT TRÁI ── #}
     <div class="col-lg-8">
 
       {# Mô tả chung #}
@@ -32,7 +32,7 @@
         </div>
         <div class="card-body">
           <textarea name="mo_ta" rows="5" class="form-control"
-                    placeholder="Giới thiệu tổng quát về tuyến đường...">{{ thong_tin.mo_ta if thong_tin and thong_tin.mo_ta else "" }}</textarea>
+                    placeholder="Giới thiệu tổng quát về tuyến đường...">{% if thong_tin and thong_tin.mo_ta %}{{ thong_tin.mo_ta }}{% endif %}</textarea>
         </div>
       </div>
 
@@ -43,7 +43,7 @@
         </div>
         <div class="card-body">
           <textarea name="ly_do_xay_dung" rows="4" class="form-control"
-                    placeholder="Mục đích, căn cứ xây dựng tuyến đường...">{{ thong_tin.ly_do_xay_dung if thong_tin and thong_tin.ly_do_xay_dung else "" }}</textarea>
+                    placeholder="Mục đích, căn cứ xây dựng tuyến đường...">{% if thong_tin and thong_tin.ly_do_xay_dung %}{{ thong_tin.ly_do_xay_dung }}{% endif %}</textarea>
         </div>
       </div>
 
@@ -54,7 +54,7 @@
         </div>
         <div class="card-body">
           <textarea name="dac_diem_dia_ly" rows="4" class="form-control"
-                    placeholder="Địa hình, địa bàn đi qua, đặc điểm tự nhiên...">{{ thong_tin.dac_diem_dia_ly if thong_tin and thong_tin.dac_diem_dia_ly else "" }}</textarea>
+                    placeholder="Địa hình, địa bàn đi qua, đặc điểm tự nhiên...">{% if thong_tin and thong_tin.dac_diem_dia_ly %}{{ thong_tin.dac_diem_dia_ly }}{% endif %}</textarea>
         </div>
       </div>
 
@@ -65,7 +65,7 @@
         </div>
         <div class="card-body">
           <textarea name="lich_su_hinh_thanh" rows="4" class="form-control"
-                    placeholder="Quá trình hình thành, các lần nâng cấp...">{{ thong_tin.lich_su_hinh_thanh if thong_tin and thong_tin.lich_su_hinh_thanh else "" }}</textarea>
+                    placeholder="Quá trình hình thành, các lần nâng cấp...">{% if thong_tin and thong_tin.lich_su_hinh_thanh %}{{ thong_tin.lich_su_hinh_thanh }}{% endif %}</textarea>
         </div>
       </div>
 
@@ -76,16 +76,16 @@
         </div>
         <div class="card-body">
           <textarea name="y_nghia_kinh_te" rows="4" class="form-control"
-                    placeholder="Vai trò, tầm quan trọng đối với phát triển kinh tế - xã hội...">{{ thong_tin.y_nghia_kinh_te if thong_tin and thong_tin.y_nghia_kinh_te else "" }}</textarea>
+                    placeholder="Vai trò, tầm quan trọng đối với phát triển kinh tế - xã hội...">{% if thong_tin and thong_tin.y_nghia_kinh_te %}{{ thong_tin.y_nghia_kinh_te }}{% endif %}</textarea>
         </div>
       </div>
 
     </div>
 
-    {# ── CỘT PHẢI: ghi chú + nút lưu ── #}
+    {# ── CỘT PHẢI ── #}
     <div class="col-lg-4">
 
-      {# Thông tin tuyến (chỉ đọc) #}
+      {# Thông tin tuyến — chỉ đọc #}
       <div class="card mb-3 bg-light border-0">
         <div class="card-body small">
           <div class="fw-semibold mb-2">{{ tuyen.ma_tuyen }} — {{ tuyen.ten_tuyen }}</div>
@@ -104,7 +104,7 @@
         </div>
         <div class="card-body">
           <textarea name="ghi_chu" rows="3" class="form-control"
-                    placeholder="Ghi chú nội bộ (không hiển thị công khai)...">{{ thong_tin.ghi_chu if thong_tin and thong_tin.ghi_chu else "" }}</textarea>
+                    placeholder="Ghi chú nội bộ (không hiển thị công khai)...">{% if thong_tin and thong_tin.ghi_chu %}{{ thong_tin.ghi_chu }}{% endif %}</textarea>
         </div>
       </div>
 
@@ -114,9 +114,7 @@
           <i class="bi bi-floppy me-1"></i>
           {{ "Cập nhật thông tin" if thong_tin else "Lưu thông tin" }}
         </button>
-        <a href="/tuyen-duong/{{ tuyen.id }}" class="btn btn-outline-secondary">
-          Hủy
-        </a>
+        <a href="/tuyen-duong/{{ tuyen.id }}" class="btn btn-outline-secondary">Hủy</a>
       </div>
 
       {% if thong_tin and thong_tin.updated_at %}

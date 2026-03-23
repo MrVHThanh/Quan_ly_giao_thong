@@ -89,71 +89,40 @@
     </p>
     {% endif %}
 
-    {# Các trường chi tiết — hiển thị dạng accordion nếu có dữ liệu #}
-    {% set co_chi_tiet = thong_tin.ly_do_xay_dung or thong_tin.dac_diem_dia_ly or thong_tin.lich_su_hinh_thanh or thong_tin.y_nghia_kinh_te %}
-    {% if co_chi_tiet %}
-    <div class="accordion accordion-flush border-top pt-2" id="acc-thongtin">
-
-      {% if thong_tin.ly_do_xay_dung %}
-      <div class="accordion-item border-0">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-lydo">
-            <i class="bi bi-signpost-2 me-2 text-secondary"></i>Lý do xây dựng
-          </button>
-        </h2>
-        <div id="acc-lydo" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
-          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
-               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.ly_do_xay_dung }}</div>
-        </div>
+    {# Các trường chi tiết — hiển thị trực tiếp nếu có dữ liệu #}
+    {% if thong_tin.ly_do_xay_dung %}
+    <div class="border-top pt-3 mt-2">
+      <div class="fw-semibold small mb-1">
+        <i class="bi bi-signpost-2 me-1 text-secondary"></i>Lý do xây dựng
       </div>
-      {% endif %}
+      <div class="text-muted small" style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.ly_do_xay_dung }}</div>
+    </div>
+    {% endif %}
 
-      {% if thong_tin.dac_diem_dia_ly %}
-      <div class="accordion-item border-0">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-dialy">
-            <i class="bi bi-geo me-2 text-secondary"></i>Đặc điểm địa lý
-          </button>
-        </h2>
-        <div id="acc-dialy" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
-          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
-               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.dac_diem_dia_ly }}</div>
-        </div>
+    {% if thong_tin.dac_diem_dia_ly %}
+    <div class="border-top pt-3 mt-2">
+      <div class="fw-semibold small mb-1">
+        <i class="bi bi-geo me-1 text-secondary"></i>Đặc điểm địa lý
       </div>
-      {% endif %}
+      <div class="text-muted small" style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.dac_diem_dia_ly }}</div>
+    </div>
+    {% endif %}
 
-      {% if thong_tin.lich_su_hinh_thanh %}
-      <div class="accordion-item border-0">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-lichsu">
-            <i class="bi bi-clock-history me-2 text-secondary"></i>Lịch sử hình thành
-          </button>
-        </h2>
-        <div id="acc-lichsu" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
-          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
-               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.lich_su_hinh_thanh }}</div>
-        </div>
+    {% if thong_tin.lich_su_hinh_thanh %}
+    <div class="border-top pt-3 mt-2">
+      <div class="fw-semibold small mb-1">
+        <i class="bi bi-clock-history me-1 text-secondary"></i>Lịch sử hình thành
       </div>
-      {% endif %}
+      <div class="text-muted small" style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.lich_su_hinh_thanh }}</div>
+    </div>
+    {% endif %}
 
-      {% if thong_tin.y_nghia_kinh_te %}
-      <div class="accordion-item border-0">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-ynghia">
-            <i class="bi bi-graph-up me-2 text-secondary"></i>Ý nghĩa kinh tế - xã hội
-          </button>
-        </h2>
-        <div id="acc-ynghia" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
-          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
-               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.y_nghia_kinh_te }}</div>
-        </div>
+    {% if thong_tin.y_nghia_kinh_te %}
+    <div class="border-top pt-3 mt-2">
+      <div class="fw-semibold small mb-1">
+        <i class="bi bi-graph-up me-1 text-secondary"></i>Ý nghĩa kinh tế - xã hội
       </div>
-      {% endif %}
-
+      <div class="text-muted small" style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.y_nghia_kinh_te }}</div>
     </div>
     {% endif %}
 

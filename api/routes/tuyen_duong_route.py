@@ -314,7 +314,7 @@ async def luu_sua_thong_tin(
     thong_tin.lich_su_hinh_thanh = lich_su_hinh_thanh or None
     thong_tin.y_nghia_kinh_te    = y_nghia_kinh_te or None
     thong_tin.ghi_chu            = ghi_chu or None
-    ttt_repo.sua(conn, thong_tin)
+    ttt_repo.cap_nhat(conn, thong_tin)
     return RedirectResponse(url=f"/tuyen-duong/{id}", status_code=302)
 
 
