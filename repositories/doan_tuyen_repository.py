@@ -6,7 +6,9 @@ Thay đổi so với phiên bản cũ:
 - Dùng row["ten_cot"] thay vì row[0], row[7], row[8]...
 - Thêm 5 cột mới: ket_cau_mat_id, nam_lam_moi, ngay_cap_nhat_tinh_trang,
   updated_at, updated_by_id
-- Thêm hàm lay_co_loc(): lọc kết hợp nhiều tiêu chí (AND), tránh lỗi 422
+- lay_co_loc(): thêm tham số ket_cau_mat_id (lọc 4 tiêu chí thay vì 3)
+- lay_co_loc(): JOIN don_vi → gắn ma_don_vi_bao_duong vào từng object
+  (hiển thị trực tiếp trên danh sách, không cần query thêm trong template)
 """
 
 import sqlite3
@@ -56,33 +58,50 @@ def lay_theo_ket_cau_mat(conn: sqlite3.Connection, ket_cau_mat_id: int) -> List[
 
 def lay_co_loc(
     conn: sqlite3.Connection,
-    tuyen_id:      Optional[int] = None,
-    tinh_trang_id: Optional[int] = None,
-    cap_duong_id:  Optional[int] = None,
+    tuyen_id:       Optional[int] = None,
+    tinh_trang_id:  Optional[int] = None,
+    cap_duong_id:   Optional[int] = None,
+    ket_cau_mat_id: Optional[int] = None,
 ) -> List[doan_tuyen_model.DoanTuyen]:
     """
     Lọc kết hợp: tất cả tiêu chí nào có giá trị đều được áp dụng (AND).
     Nếu không có tiêu chí nào → trả về toàn bộ danh sách.
     Được gọi từ router thay cho các hàm if/elif riêng lẻ.
+
+    JOIN don_vi để lấy ma_don_vi_bao_duong hiển thị trực tiếp trên danh sách
+    (tránh phải query N lần trong template).
     """
     conditions: List[str] = []
     params: List[int] = []
 
     if tuyen_id is not None:
-        conditions.append("tuyen_id = ?")
+        conditions.append("dt.tuyen_id = ?")
         params.append(tuyen_id)
     if tinh_trang_id is not None:
-        conditions.append("tinh_trang_id = ?")
+        conditions.append("dt.tinh_trang_id = ?")
         params.append(tinh_trang_id)
     if cap_duong_id is not None:
-        conditions.append("cap_duong_id = ?")
+        conditions.append("dt.cap_duong_id = ?")
         params.append(cap_duong_id)
+    if ket_cau_mat_id is not None:
+        conditions.append("dt.ket_cau_mat_id = ?")
+        params.append(ket_cau_mat_id)
 
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
-    sql   = f"SELECT * FROM doan_tuyen {where} ORDER BY tuyen_id, ly_trinh_dau"
-
+    sql = f"""
+        SELECT dt.*, dv.ma_don_vi AS ma_don_vi_bao_duong
+        FROM doan_tuyen dt
+        LEFT JOIN don_vi dv ON dt.don_vi_bao_duong_id = dv.id
+        {where}
+        ORDER BY dt.tuyen_id, dt.ly_trinh_dau
+    """
     rows = conn.execute(sql, params).fetchall()
-    return [_row_to_object(r) for r in rows]
+    result = []
+    for r in rows:
+        obj = _row_to_object(r)
+        obj.ma_don_vi_bao_duong = r["ma_don_vi_bao_duong"]  # gắn thêm từ JOIN
+        result.append(obj)
+    return result
 
 
 def them(conn: sqlite3.Connection, obj: doan_tuyen_model.DoanTuyen) -> int:

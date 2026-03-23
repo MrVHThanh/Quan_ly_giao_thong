@@ -36,6 +36,28 @@
         </select>
       </div>
       <div class="col-auto">
+        <label class="form-label mb-1 small">Cấp đường</label>
+        <select name="cap_duong_id" class="form-select form-select-sm">
+          <option value="">-- Tất cả --</option>
+          {% for c in cap_duong_list %}
+          <option value="{{ c.id }}" {% if bo_loc.cap_duong_id == c.id %}selected{% endif %}>
+            {{ c.ten_cap }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label mb-1 small">Kết cấu mặt</label>
+        <select name="ket_cau_mat_id" class="form-select form-select-sm">
+          <option value="">-- Tất cả --</option>
+          {% for k in ket_cau_mat_list %}
+          <option value="{{ k.id }}" {% if bo_loc.ket_cau_mat_id == k.id %}selected{% endif %}>
+            {{ k.ten_ket_cau }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
         <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
         <a href="/doan-tuyen/" class="btn btn-sm btn-outline-secondary">Xóa lọc</a>
       </div>
@@ -62,6 +84,7 @@
           <th>Kết cấu mặt</th>
           <th class="text-end">Dài (km)</th>
           <th class="text-end">Tỉ lệ (%)</th>
+          <th>Đơn vị BD</th>
           <th></th>
         </tr>
       </thead>
@@ -88,8 +111,8 @@
             {% else %}—{% endif %}
           </td>
 
-          {# Lý trình #}
-          <td class="text-muted small">{{ d.ly_trinh_dau }}–{{ d.ly_trinh_cuoi }}</td>
+          {# Lý trình — format Km190+000 #}
+          <td class="text-muted small text-nowrap">{{ d.ly_trinh_dau | format_ly_trinh }}–{{ d.ly_trinh_cuoi | format_ly_trinh }}</td>
 
           {# Cấp đường: hiển thị tên cấp #}
           <td class="small">
@@ -125,6 +148,9 @@
             {% else %}—{% endif %}
           </td>
 
+          {# Đơn vị bảo dưỡng — ma_don_vi từ JOIN don_vi trong lay_co_loc() #}
+          <td class="small text-nowrap">{{ d.ma_don_vi_bao_duong or "—" }}</td>
+
           {# Nút sửa #}
           <td>
             <a href="/doan-tuyen/{{ d.id }}/sua"
@@ -134,7 +160,7 @@
         </tr>
         {% else %}
         <tr>
-          <td colspan="9" class="text-center text-muted py-4">Không có dữ liệu.</td>
+          <td colspan="10" class="text-center text-muted py-4">Không có dữ liệu.</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -143,7 +169,7 @@
       {% if doan_list %}
       <tfoot class="table-light fw-semibold">
         <tr>
-          <td colspan="6" class="text-end small text-muted">Tổng cộng:</td>
+          <td colspan="7" class="text-end small text-muted">Tổng cộng:</td>
           <td class="text-end">{{ "%.3f"|format(tong_chieu_dai) }}</td>
           <td class="text-end">100%</td>
           <td></td>

@@ -50,9 +50,10 @@ def lay_theo_ket_cau_mat(
 
 def lay_co_loc(
     conn: sqlite3.Connection,
-    tuyen_id:      Optional[int] = None,
-    tinh_trang_id: Optional[int] = None,
-    cap_duong_id:  Optional[int] = None,
+    tuyen_id:       Optional[int] = None,
+    tinh_trang_id:  Optional[int] = None,
+    cap_duong_id:   Optional[int] = None,
+    ket_cau_mat_id: Optional[int] = None,
 ) -> List[doan_tuyen_model.DoanTuyen]:
     """
     Lọc kết hợp nhiều tiêu chí (AND).
@@ -65,6 +66,7 @@ def lay_co_loc(
         tuyen_id=tuyen_id,
         tinh_trang_id=tinh_trang_id,
         cap_duong_id=cap_duong_id,
+        ket_cau_mat_id=ket_cau_mat_id,
     )
 
 

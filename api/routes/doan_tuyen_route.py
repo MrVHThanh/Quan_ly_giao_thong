@@ -34,6 +34,26 @@ router = APIRouter()
 templates = Jinja2Templates(directory=os.path.join(_ROOT, "templates"))
 
 
+def _format_ly_trinh(value) -> str:
+    """Chuyển lý trình số thực → KmXXX+YYY.
+    Ví dụ: 190.0 → Km190+000 | 37.557 → Km37+557
+    """
+    if value is None:
+        return "—"
+    try:
+        value = float(value)
+        km = int(value)
+        m  = round((value - km) * 1000)
+        if m >= 1000:
+            km += 1
+            m = 0
+        return f"Km{km}+{m:03d}"
+    except (ValueError, TypeError):
+        return str(value)
+
+templates.env.filters["format_ly_trinh"] = _format_ly_trinh
+
+
 def _to_int(val: Optional[str]) -> Optional[int]:
     """Chuyển chuỗi rỗng / None → None; chuỗi số hợp lệ → int.
     Tránh lỗi 422 khi form gửi chuỗi rỗng "" cho tham số kiểu int."""
@@ -43,23 +63,35 @@ def _to_int(val: Optional[str]) -> Optional[int]:
         return None
 
 
+def _to_float(val: Optional[str]) -> Optional[float]:
+    """Chuyển chuỗi rỗng / None → None; chuỗi số hợp lệ → float.
+    Tránh lỗi float_parsing khi form gửi chuỗi rỗng "" cho tham số kiểu float."""
+    try:
+        return float(val) if val and str(val).strip() else None
+    except (ValueError, TypeError):
+        return None
+
+
 @router.get("/", response_class=HTMLResponse)
 async def danh_sach(
     request: Request,
-    tuyen_id:      Optional[str] = Query(default=None),
-    tinh_trang_id: Optional[str] = Query(default=None),
-    cap_duong_id:  Optional[str] = Query(default=None),
+    tuyen_id:       Optional[str] = Query(default=None),
+    tinh_trang_id:  Optional[str] = Query(default=None),
+    cap_duong_id:   Optional[str] = Query(default=None),
+    ket_cau_mat_id: Optional[str] = Query(default=None),
     user=Depends(yeu_cau_dang_nhap), conn=Depends(get_db),
 ):
-    tuyen_id_int      = _to_int(tuyen_id)
-    tinh_trang_id_int = _to_int(tinh_trang_id)
-    cap_duong_id_int  = _to_int(cap_duong_id)
+    tuyen_id_int       = _to_int(tuyen_id)
+    tinh_trang_id_int  = _to_int(tinh_trang_id)
+    cap_duong_id_int   = _to_int(cap_duong_id)
+    ket_cau_mat_id_int = _to_int(ket_cau_mat_id)
 
     doan_list = dt_service.lay_co_loc(
         conn,
         tuyen_id=tuyen_id_int,
         tinh_trang_id=tinh_trang_id_int,
         cap_duong_id=cap_duong_id_int,
+        ket_cau_mat_id=ket_cau_mat_id_int,
     )
 
     # --- Lookup maps: id → object (dùng trong template để hiển thị tên thay ID) ---
@@ -78,18 +110,21 @@ async def danh_sach(
 
     return templates.TemplateResponse("doan_tuyen/list.html", {
         "request": request, "user": user,
-        "doan_list":       doan_list,
-        "tuyen_list":      tuyen_list,
-        "tinh_trang_list": tt_list,
-        "map_tuyen":       map_tuyen,
-        "map_tt":          map_tt,
-        "map_cap":         map_cap,
-        "map_kcm":         map_kcm,
-        "tong_chieu_dai":  tong_chieu_dai,
+        "doan_list":        doan_list,
+        "tuyen_list":       tuyen_list,
+        "tinh_trang_list":  tt_list,
+        "cap_duong_list":   cap_list,    # dropdown filter Cấp đường
+        "ket_cau_mat_list": kcm_list,   # dropdown filter Kết cấu mặt
+        "map_tuyen":        map_tuyen,
+        "map_tt":           map_tt,
+        "map_cap":          map_cap,
+        "map_kcm":          map_kcm,
+        "tong_chieu_dai":   tong_chieu_dai,
         "bo_loc": {
-            "tuyen_id":      tuyen_id_int,
-            "tinh_trang_id": tinh_trang_id_int,
-            "cap_duong_id":  cap_duong_id_int,
+            "tuyen_id":       tuyen_id_int,
+            "tinh_trang_id":  tinh_trang_id_int,
+            "cap_duong_id":   cap_duong_id_int,
+            "ket_cau_mat_id": ket_cau_mat_id_int,
         },
     })
 
@@ -131,21 +166,28 @@ async def luu_them(
     ma_doan: str = Form(...), tuyen_id: int = Form(...),
     cap_duong_id: int = Form(...), tinh_trang_id: int = Form(...),
     ly_trinh_dau: float = Form(...), ly_trinh_cuoi: float = Form(...),
-    ket_cau_mat_id: int = Form(None),
-    chieu_dai_thuc_te: float = Form(None),
-    chieu_rong_mat_min: float = Form(None), chieu_rong_mat_max: float = Form(None),
-    chieu_rong_nen_min: float = Form(None), chieu_rong_nen_max: float = Form(None),
-    don_vi_bao_duong_id: int = Form(None), ghi_chu: str = Form(None),
+    ket_cau_mat_id:      Optional[str] = Form(None),
+    chieu_dai_thuc_te:   Optional[str] = Form(None),
+    chieu_rong_mat_min:  Optional[str] = Form(None),
+    chieu_rong_mat_max:  Optional[str] = Form(None),
+    chieu_rong_nen_min:  Optional[str] = Form(None),
+    chieu_rong_nen_max:  Optional[str] = Form(None),
+    don_vi_bao_duong_id: Optional[str] = Form(None),
+    ghi_chu: str = Form(None),
     user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db),
 ):
     try:
         doan = dt_service.them(
             conn, ma_doan, tuyen_id, cap_duong_id, tinh_trang_id,
             ly_trinh_dau, ly_trinh_cuoi,
-            ket_cau_mat_id=ket_cau_mat_id, chieu_dai_thuc_te=chieu_dai_thuc_te,
-            chieu_rong_mat_min=chieu_rong_mat_min, chieu_rong_mat_max=chieu_rong_mat_max,
-            chieu_rong_nen_min=chieu_rong_nen_min, chieu_rong_nen_max=chieu_rong_nen_max,
-            don_vi_bao_duong_id=don_vi_bao_duong_id, ghi_chu=ghi_chu,
+            ket_cau_mat_id=_to_int(ket_cau_mat_id),
+            chieu_dai_thuc_te=_to_float(chieu_dai_thuc_te),
+            chieu_rong_mat_min=_to_float(chieu_rong_mat_min),
+            chieu_rong_mat_max=_to_float(chieu_rong_mat_max),
+            chieu_rong_nen_min=_to_float(chieu_rong_nen_min),
+            chieu_rong_nen_max=_to_float(chieu_rong_nen_max),
+            don_vi_bao_duong_id=_to_int(don_vi_bao_duong_id),
+            ghi_chu=ghi_chu,
             updated_by_id=user["id"],
         )
         return RedirectResponse(url=f"/doan-tuyen/{doan.id}", status_code=302)
@@ -167,18 +209,26 @@ async def luu_sua(
     request: Request, id: int,
     cap_duong_id: int = Form(...), tinh_trang_id: int = Form(...),
     ly_trinh_dau: float = Form(...), ly_trinh_cuoi: float = Form(...),
-    ket_cau_mat_id: int = Form(None), chieu_dai_thuc_te: float = Form(None),
-    chieu_rong_mat_min: float = Form(None), chieu_rong_mat_max: float = Form(None),
-    chieu_rong_nen_min: float = Form(None), chieu_rong_nen_max: float = Form(None),
-    don_vi_bao_duong_id: int = Form(None), ghi_chu: str = Form(None),
+    ket_cau_mat_id:      Optional[str] = Form(None),
+    chieu_dai_thuc_te:   Optional[str] = Form(None),
+    chieu_rong_mat_min:  Optional[str] = Form(None),
+    chieu_rong_mat_max:  Optional[str] = Form(None),
+    chieu_rong_nen_min:  Optional[str] = Form(None),
+    chieu_rong_nen_max:  Optional[str] = Form(None),
+    don_vi_bao_duong_id: Optional[str] = Form(None),
+    ghi_chu: str = Form(None),
     user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db),
 ):
     try:
         dt_service.sua(conn, id, cap_duong_id, tinh_trang_id, ly_trinh_dau, ly_trinh_cuoi,
-                       ket_cau_mat_id=ket_cau_mat_id, chieu_dai_thuc_te=chieu_dai_thuc_te,
-                       chieu_rong_mat_min=chieu_rong_mat_min, chieu_rong_mat_max=chieu_rong_mat_max,
-                       chieu_rong_nen_min=chieu_rong_nen_min, chieu_rong_nen_max=chieu_rong_nen_max,
-                       don_vi_bao_duong_id=don_vi_bao_duong_id, ghi_chu=ghi_chu,
+                       ket_cau_mat_id=_to_int(ket_cau_mat_id),
+                       chieu_dai_thuc_te=_to_float(chieu_dai_thuc_te),
+                       chieu_rong_mat_min=_to_float(chieu_rong_mat_min),
+                       chieu_rong_mat_max=_to_float(chieu_rong_mat_max),
+                       chieu_rong_nen_min=_to_float(chieu_rong_nen_min),
+                       chieu_rong_nen_max=_to_float(chieu_rong_nen_max),
+                       don_vi_bao_duong_id=_to_int(don_vi_bao_duong_id),
+                       ghi_chu=ghi_chu,
                        updated_by_id=user["id"])
         return RedirectResponse(url=f"/doan-tuyen/{id}", status_code=302)
     except dt_service.DoanTuyenServiceError as e:

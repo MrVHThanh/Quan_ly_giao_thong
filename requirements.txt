@@ -19,7 +19,26 @@ matplotlib==3.10.8
 # Tính toán số học / mảng dữ liệu (dependency của pandas & matplotlib)
 numpy==2.2.6
 
+# --- Web framework & API server ---
+
+# Framework xây dựng REST API & web app (async, tự động sinh OpenAPI docs)
+fastapi==0.115.12
+
+# ASGI server — chạy ứng dụng FastAPI
+uvicorn==0.34.0
+
+# Template engine HTML — dùng với FastAPI để render giao diện web
+jinja2==3.1.6
+
+# Parse multipart/form-data — bắt buộc khi FastAPI nhận upload file hoặc form HTML
+python-multipart==0.0.20
+
+# Băm & xác minh mật khẩu an toàn (bcrypt algorithm)
+bcrypt==4.3.0
+
 # --- Transitive dependencies (được kéo theo tự động) ---
+
+# >> Nhóm pandas / matplotlib
 contourpy==1.3.2
 cycler==0.12.1
 et_xmlfile==2.0.0
@@ -33,9 +52,32 @@ pytz==2026.1.post1
 six==1.17.0
 tzdata==2025.3
 
+# >> Nhóm fastapi
+starlette==0.46.1          # ASGI micro-framework nền tảng của FastAPI
+pydantic==2.11.3           # Validation dữ liệu & settings management
+pydantic-core==2.33.1      # Lõi C của Pydantic (cài cùng pydantic)
+annotated-types==0.7.0     # Hỗ trợ Annotated type hints (dùng bởi Pydantic)
+anyio==4.9.0               # Async I/O layer (backend cho Starlette)
+sniffio==1.3.1             # Phát hiện async runtime đang dùng
+idna==3.10                 # Xử lý tên miền quốc tế hoá (dep của anyio)
+typing-extensions==4.13.1  # Backport type hints (Python < 3.12)
+exceptiongroup==1.2.2      # Backport ExceptionGroup (Python < 3.11)
+
+# >> Nhóm uvicorn
+click==8.1.8               # CLI parsing (dùng bởi uvicorn)
+h11==0.14.0                # HTTP/1.1 parser thuần Python
+
+# >> Nhóm jinja2
+MarkupSafe==3.0.2          # Xử lý chuỗi HTML an toàn (dep của Jinja2)
+
 # ============================================================
 # LƯU Ý:
 # Các thư viện sau là BUILT-IN của Python, KHÔNG cần cài:
 #   sqlite3, os, sys, pathlib, importlib, json,
 #   argparse, glob, base64, secrets, math
+#
+# Nếu dùng uvicorn với tính năng nâng cao (hot-reload, WebSocket tốc độ
+# cao...), có thể cài thêm nhóm [standard]:
+#   pip install "uvicorn[standard]"
+#   → kéo thêm: uvloop, httptools, websockets, watchfiles, python-dotenv
 # ============================================================

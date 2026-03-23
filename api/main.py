@@ -21,7 +21,7 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from api.routes import auth, tuyen_duong, doan_tuyen, thong_ke, ban_do
+from api.routes import auth, doan_tuyen_route, tuyen_duong, thong_ke, ban_do
 
 app = FastAPI(
     title="Hệ thống Quản lý Đường bộ Lào Cai",
@@ -38,10 +38,32 @@ if os.path.isdir(_STATIC):
 
 templates = Jinja2Templates(directory=os.path.join(_ROOT, "templates"))
 
+
+# ── Jinja2 custom filters ──────────────────────────────────────────────────
+def _format_ly_trinh(value) -> str:
+    """Chuyển lý trình số thực → định dạng KmXXX+YYY.
+    Ví dụ: 190.0 → Km190+000 | 37.557 → Km37+557
+    Dùng trong template: {{ d.ly_trinh_dau | format_ly_trinh }}
+    """
+    if value is None:
+        return "—"
+    try:
+        value = float(value)
+        km = int(value)
+        m  = round((value - km) * 1000)
+        if m >= 1000:        # xử lý làm tròn tràn
+            km += 1
+            m = 0
+        return f"Km{km}+{m:03d}"
+    except (ValueError, TypeError):
+        return str(value)
+
+templates.env.filters["format_ly_trinh"] = _format_ly_trinh
+
 # ── Đăng ký routes ─────────────────────────────────────────────────────────
 app.include_router(auth.router,        prefix="/auth",       tags=["Xác thực"])
 app.include_router(tuyen_duong.router, prefix="/tuyen-duong", tags=["Tuyến đường"])
-app.include_router(doan_tuyen.router,  prefix="/doan-tuyen",  tags=["Đoạn tuyến"])
+app.include_router(doan_tuyen_route.router,  prefix="/doan-tuyen",  tags=["Đoạn tuyến"])
 app.include_router(thong_ke.router,    prefix="/thong-ke",    tags=["Thống kê"])
 app.include_router(ban_do.router,      prefix="/ban-do",      tags=["Bản đồ"])
 
