@@ -21,7 +21,7 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from api.routes import auth, doan_tuyen_route, tuyen_duong, thong_ke, ban_do
+from api.routes import auth, doan_tuyen_route, thong_ke, ban_do, tuyen_duong_route
 
 app = FastAPI(
     title="Hệ thống Quản lý Đường bộ Lào Cai",
@@ -62,7 +62,7 @@ templates.env.filters["format_ly_trinh"] = _format_ly_trinh
 
 # ── Đăng ký routes ─────────────────────────────────────────────────────────
 app.include_router(auth.router,        prefix="/auth",       tags=["Xác thực"])
-app.include_router(tuyen_duong.router, prefix="/tuyen-duong", tags=["Tuyến đường"])
+app.include_router(tuyen_duong_route.router, prefix="/tuyen-duong", tags=["Tuyến đường"])
 app.include_router(doan_tuyen_route.router,  prefix="/doan-tuyen",  tags=["Đoạn tuyến"])
 app.include_router(thong_ke.router,    prefix="/thong-ke",    tags=["Thống kê"])
 app.include_router(ban_do.router,      prefix="/ban-do",      tags=["Bản đồ"])

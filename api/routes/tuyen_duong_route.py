@@ -11,6 +11,7 @@ GET  /tuyen-duong/api/list        → JSON danh sách (dùng cho bản đồ)
 """
 
 import os, sys
+from typing import Optional
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -51,6 +52,15 @@ def _fmt_ly_trinh(val) -> str:
         return str(val)
 
 templates.env.filters["ly_trinh"] = _fmt_ly_trinh
+
+
+def _to_int(val: Optional[str]) -> Optional[int]:
+    """Chuyển chuỗi rỗng / None → None; chuỗi số hợp lệ → int.
+    Tránh lỗi int_parsing khi form gửi chuỗi rỗng "" cho tham số kiểu int."""
+    try:
+        return int(val) if val and str(val).strip() else None
+    except (ValueError, TypeError):
+        return None
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -133,14 +143,15 @@ async def luu_them(
     ma_tuyen: str = Form(...), ten_tuyen: str = Form(...),
     cap_quan_ly_id: int = Form(...), don_vi_quan_ly_id: int = Form(...),
     diem_dau: str = Form(None), diem_cuoi: str = Form(None),
-    nam_xay_dung: int = Form(None), nam_hoan_thanh: int = Form(None),
+    nam_xay_dung:    Optional[str] = Form(None),
+    nam_hoan_thanh:  Optional[str] = Form(None),
     ghi_chu: str = Form(None),
     user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db),
 ):
     try:
         tuyen = td_service.them(conn, ma_tuyen, ten_tuyen, cap_quan_ly_id,
                                 don_vi_quan_ly_id, diem_dau=diem_dau, diem_cuoi=diem_cuoi,
-                                nam_xay_dung=nam_xay_dung, nam_hoan_thanh=nam_hoan_thanh,
+                                nam_xay_dung=_to_int(nam_xay_dung), nam_hoan_thanh=_to_int(nam_hoan_thanh),
                                 ghi_chu=ghi_chu)
         return RedirectResponse(url=f"/tuyen-duong/{tuyen.id}", status_code=302)
     except td_service.TuyenDuongServiceError as e:
@@ -202,14 +213,15 @@ async def luu_sua(
     ten_tuyen: str = Form(...),
     cap_quan_ly_id: int = Form(...), don_vi_quan_ly_id: int = Form(...),
     diem_dau: str = Form(None), diem_cuoi: str = Form(None),
-    nam_xay_dung: int = Form(None), nam_hoan_thanh: int = Form(None),
+    nam_xay_dung:    Optional[str] = Form(None),
+    nam_hoan_thanh:  Optional[str] = Form(None),
     ghi_chu: str = Form(None),
     user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db),
 ):
     try:
         td_service.sua(conn, id, ten_tuyen, cap_quan_ly_id, don_vi_quan_ly_id,
                        diem_dau=diem_dau, diem_cuoi=diem_cuoi,
-                       nam_xay_dung=nam_xay_dung, nam_hoan_thanh=nam_hoan_thanh,
+                       nam_xay_dung=_to_int(nam_xay_dung), nam_hoan_thanh=_to_int(nam_hoan_thanh),
                        ghi_chu=ghi_chu)
         return RedirectResponse(url=f"/tuyen-duong/{id}", status_code=302)
     except td_service.TuyenDuongServiceError as e:
