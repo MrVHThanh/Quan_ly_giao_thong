@@ -89,40 +89,71 @@
     </p>
     {% endif %}
 
-    {# Các trường chi tiết — hiển thị trực tiếp nếu có dữ liệu #}
-    {% if thong_tin.ly_do_xay_dung %}
-    <div class="border-top pt-3 mt-2">
-      <div class="fw-semibold small mb-1">
-        <i class="bi bi-signpost-2 me-1 text-secondary"></i>Lý do xây dựng
-      </div>
-      <div class="text-muted small" style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.ly_do_xay_dung }}</div>
-    </div>
-    {% endif %}
+    {# Các trường chi tiết — hiển thị dạng accordion nếu có dữ liệu #}
+    {% set co_chi_tiet = thong_tin.ly_do_xay_dung or thong_tin.dac_diem_dia_ly or thong_tin.lich_su_hinh_thanh or thong_tin.y_nghia_kinh_te %}
+    {% if co_chi_tiet %}
+    <div class="accordion accordion-flush border-top pt-2" id="acc-thongtin">
 
-    {% if thong_tin.dac_diem_dia_ly %}
-    <div class="border-top pt-3 mt-2">
-      <div class="fw-semibold small mb-1">
-        <i class="bi bi-geo me-1 text-secondary"></i>Đặc điểm địa lý
+      {% if thong_tin.ly_do_xay_dung %}
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-lydo">
+            <i class="bi bi-signpost-2 me-2 text-secondary"></i>Lý do xây dựng
+          </button>
+        </h2>
+        <div id="acc-lydo" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
+          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
+               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.ly_do_xay_dung }}</div>
+        </div>
       </div>
-      <div class="text-muted small" style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.dac_diem_dia_ly }}</div>
-    </div>
-    {% endif %}
+      {% endif %}
 
-    {% if thong_tin.lich_su_hinh_thanh %}
-    <div class="border-top pt-3 mt-2">
-      <div class="fw-semibold small mb-1">
-        <i class="bi bi-clock-history me-1 text-secondary"></i>Lịch sử hình thành
+      {% if thong_tin.dac_diem_dia_ly %}
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-dialy">
+            <i class="bi bi-geo me-2 text-secondary"></i>Đặc điểm địa lý
+          </button>
+        </h2>
+        <div id="acc-dialy" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
+          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
+               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.dac_diem_dia_ly }}</div>
+        </div>
       </div>
-      <div class="text-muted small" style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.lich_su_hinh_thanh }}</div>
-    </div>
-    {% endif %}
+      {% endif %}
 
-    {% if thong_tin.y_nghia_kinh_te %}
-    <div class="border-top pt-3 mt-2">
-      <div class="fw-semibold small mb-1">
-        <i class="bi bi-graph-up me-1 text-secondary"></i>Ý nghĩa kinh tế - xã hội
+      {% if thong_tin.lich_su_hinh_thanh %}
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-lichsu">
+            <i class="bi bi-clock-history me-2 text-secondary"></i>Lịch sử hình thành
+          </button>
+        </h2>
+        <div id="acc-lichsu" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
+          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
+               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.lich_su_hinh_thanh }}</div>
+        </div>
       </div>
-      <div class="text-muted small" style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.y_nghia_kinh_te }}</div>
+      {% endif %}
+
+      {% if thong_tin.y_nghia_kinh_te %}
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-ynghia">
+            <i class="bi bi-graph-up me-2 text-secondary"></i>Ý nghĩa kinh tế - xã hội
+          </button>
+        </h2>
+        <div id="acc-ynghia" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
+          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
+               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.y_nghia_kinh_te }}</div>
+        </div>
+      </div>
+      {% endif %}
+
     </div>
     {% endif %}
 
@@ -148,10 +179,18 @@
 {% endif %}
 {% endif %}
 
-{# ── BẢNG ĐOẠN TUYẾN ── #}
+{# ── BẢNG ĐOẠN TUYẾN (GỘP CHÍNH + ĐI CHUNG, SẮP XẾP THEO LÝ TRÌNH) ── #}
+{% set so_doan_chinh = doan_list|length %}
+{% set so_ddc = ddc_list|length if ddc_list else 0 %}
+
 <div class="card mb-3">
-  <div class="card-header bg-white fw-semibold py-2 d-flex justify-content-between align-items-center">
-    <span>Danh sách đoạn tuyến ({{ doan_list|length }} đoạn)</span>
+  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-semibold">Danh sách đoạn tuyến</span>
+      <span class="text-muted small ms-2">
+        ({{ so_doan_chinh }} đoạn chính{% if so_ddc > 0 %} + {{ so_ddc }} đoạn đi chung{% endif %})
+      </span>
+    </div>
     <div class="d-flex align-items-center gap-3">
       {% if tong_chieu_dai %}
       <span class="small text-muted">
@@ -162,6 +201,14 @@
          class="btn btn-sm btn-outline-secondary py-0">Xem đầy đủ</a>
     </div>
   </div>
+
+  {% if so_ddc > 0 %}
+  <div class="px-3 py-1 border-bottom bg-light d-flex gap-3" style="font-size:.75rem;">
+    <span><span class="d-inline-block me-1" style="width:12px;height:12px;background:#fff;border:1px solid #dee2e6;vertical-align:middle;"></span>Đoạn chính</span>
+    <span><span class="d-inline-block me-1" style="width:12px;height:12px;background:#fff3cd;border:1px solid #ffc107;vertical-align:middle;"></span>Đoạn đi chung</span>
+  </div>
+  {% endif %}
+
   <div class="card-body p-0">
     <table class="table table-sm table-hover mb-0">
       <thead class="table-light">
@@ -177,72 +224,85 @@
         </tr>
       </thead>
       <tbody>
-        {% for d in doan_list %}
-        {% set cap = map_cap.get(d.cap_duong_id) %}
-        {% set tt  = map_tt.get(d.tinh_trang_id) %}
-        {% set kcm = map_kcm.get(d.ket_cau_mat_id) %}
-        {% set cd  = d.chieu_dai or 0 %}
-        {% set ti_le = (cd / tong_chieu_dai * 100) if tong_chieu_dai else 0 %}
-        <tr>
-          {# Mã đoạn #}
-          <td>
-            <a href="/doan-tuyen/{{ d.id }}" class="text-decoration-none fw-semibold">
-              {{ d.ma_doan }}
-            </a>
-          </td>
+        {% if rows_gop %}
+          {% for row in rows_gop %}
 
-          {# Lý trình: Km39+000 – Km66+500 #}
-          <td class="text-muted small text-nowrap">
-            {{ d.ly_trinh_dau|ly_trinh }} – {{ d.ly_trinh_cuoi|ly_trinh }}
-          </td>
+          {% if row.loai == 'CHINH' %}
+          {% set d   = row.obj %}
+          {% set cap = map_cap.get(d.cap_duong_id) %}
+          {% set tt  = map_tt.get(d.tinh_trang_id) %}
+          {% set kcm = map_kcm.get(d.ket_cau_mat_id) %}
+          {% set cd  = d.chieu_dai or 0 %}
+          <tr>
+            <td>
+              <a href="/doan-tuyen/{{ d.id }}" class="text-decoration-none fw-semibold">
+                {{ d.ma_doan }}
+              </a>
+            </td>
+            <td class="text-muted small text-nowrap">
+              {{ d.ly_trinh_dau|ly_trinh }} – {{ d.ly_trinh_cuoi|ly_trinh }}
+            </td>
+            <td class="small">
+              {% if cap %}<span title="{{ cap.mo_ta or '' }}">{{ cap.ten_cap }}</span>{% else %}—{% endif %}
+            </td>
+            <td class="small">
+              {% if tt %}
+                <span class="badge rounded-pill"
+                      style="background-color:{{ tt.mau_hien_thi or '#6c757d' }};font-size:.72rem;">
+                  {{ tt.ten_tinh_trang }}
+                </span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="small">{% if kcm %}{{ kcm.ten_ket_cau }}{% else %}—{% endif %}</td>
+            <td class="text-end">{{ "%.3f"|format(cd) }}</td>
+            <td class="text-end small text-muted">
+              {% if tong_chieu_dai %}{{ "%.1f"|format(cd / tong_chieu_dai * 100) }}%{% else %}—{% endif %}
+            </td>
+            <td>
+              {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+              <a href="/doan-tuyen/{{ d.id }}/sua"
+                 class="btn btn-xs btn-outline-secondary py-0 px-2"
+                 style="font-size:.73rem;">Sửa</a>
+              {% endif %}
+            </td>
+          </tr>
 
-          {# Cấp đường #}
-          <td class="small">
-            {% if cap %}
-              <span title="{{ cap.mo_ta or '' }}">{{ cap.ten_cap }}</span>
-            {% else %}—{% endif %}
-          </td>
-
-          {# Tình trạng: badge màu #}
-          <td class="small">
-            {% if tt %}
-              <span class="badge rounded-pill"
-                    style="background-color:{{ tt.mau_hien_thi or '#6c757d' }}; font-size:.72rem;">
-                {{ tt.ten_tinh_trang }}
+          {% elif row.loai == 'DI_CHUNG' %}
+          {% set ddc       = row.obj %}
+          {% set tuyen_chu = map_tuyen.get(ddc.tuyen_chinh_id) %}
+          {% set cd_ddc    = (ddc.ly_trinh_cuoi_di_chung or 0) - (ddc.ly_trinh_dau_di_chung or 0) %}
+          <tr style="background-color:#fff9e6;">
+            <td>
+              <span class="fw-semibold" style="color:#856404;" title="{{ ddc.ma_doan_di_chung }}">
+                {{ ddc.ma_doan_di_chung }}
               </span>
-            {% else %}—{% endif %}
-          </td>
+              <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;">Đi chung</span>
+            </td>
+            <td class="small text-nowrap" style="color:#856404;">
+              {{ ddc.ly_trinh_dau_di_chung|ly_trinh }} – {{ ddc.ly_trinh_cuoi_di_chung|ly_trinh }}
+            </td>
+            <td class="small text-muted" colspan="3">
+              <i class="bi bi-arrow-left-right me-1"></i>Đi chung với
+              <strong>{{ tuyen_chu.ma_tuyen if tuyen_chu else "—" }}</strong>
+              {% if tuyen_chu %}<span class="text-muted">({{ tuyen_chu.ten_tuyen }})</span>{% endif %}
+            </td>
+            <td class="text-end" style="color:#856404;">{{ "%.3f"|format(cd_ddc) }}</td>
+            <td class="text-end small text-muted">
+              {% if tong_chieu_dai and cd_ddc %}{{ "%.1f"|format(cd_ddc / tong_chieu_dai * 100) }}%{% else %}—{% endif %}
+            </td>
+            <td></td>
+          </tr>
+          {% endif %}
 
-          {# Kết cấu mặt #}
-          <td class="small">
-            {% if kcm %}{{ kcm.ten_ket_cau }}{% else %}—{% endif %}
-          </td>
-
-          {# Chiều dài #}
-          <td class="text-end">{{ "%.3f"|format(cd) }}</td>
-
-          {# Tỉ lệ % #}
-          <td class="text-end">
-            {% if tong_chieu_dai %}
-              <span class="small text-muted">{{ "%.1f"|format(ti_le) }}%</span>
-            {% else %}—{% endif %}
-          </td>
-
-          {# Sửa #}
-          <td>
-            <a href="/doan-tuyen/{{ d.id }}/sua"
-               class="btn btn-xs btn-outline-secondary py-0 px-2"
-               style="font-size:.73rem;">Sửa</a>
-          </td>
-        </tr>
+          {% endfor %}
         {% else %}
         <tr>
           <td colspan="8" class="text-center text-muted py-3">Chưa có đoạn tuyến nào.</td>
         </tr>
-        {% endfor %}
+        {% endif %}
       </tbody>
 
-      {% if doan_list %}
+      {% if rows_gop %}
       <tfoot class="table-light fw-semibold">
         <tr>
           <td colspan="5" class="text-end small text-muted">Tổng cộng:</td>

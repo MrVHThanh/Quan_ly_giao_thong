@@ -34,6 +34,7 @@ import repositories.ket_cau_mat_repository as kcm_repo
 import repositories.don_vi_repository as dv_repo
 import repositories.tuyen_duong_geo_repository as geo_repo
 import repositories.thong_tin_tuyen_repository as ttt_repo
+import repositories.doan_di_chung_repository as ddc_repo
 
 router = APIRouter()
 templates = Jinja2Templates(directory=os.path.join(_ROOT, "templates"))
@@ -168,22 +169,35 @@ async def chi_tiet(request: Request, id: int,
                    user=Depends(yeu_cau_dang_nhap), conn=Depends(get_db)):
     tuyen      = td_service.lay_theo_id(conn, id)
     doan_list  = dt_service.lay_theo_tuyen_id(conn, id)
+    ddc_list   = ddc_repo.lay_theo_tuyen_di_chung(conn, id)
     geo        = geo_repo.lay_theo_tuyen_id(conn, id)
     thong_tin  = ttt_repo.lay_theo_tuyen_id(conn, id)
 
     # --- Lookup maps: id → object (hiển thị tên thay ID trong bảng đoạn) ---
-    cap_list = cd_repo.lay_dang_hoat_dong(conn)
-    tt_list  = tt_repo.lay_dang_hoat_dong(conn)
-    kcm_list = kcm_repo.lay_dang_hoat_dong(conn)
+    cap_list   = cd_repo.lay_dang_hoat_dong(conn)
+    tt_list    = tt_repo.lay_dang_hoat_dong(conn)
+    kcm_list   = kcm_repo.lay_dang_hoat_dong(conn)
+    tuyen_list = td_service.lay_tat_ca(conn)
 
-    map_cap = {c.id: c for c in cap_list}
-    map_tt  = {t.id: t for t in tt_list}
-    map_kcm = {k.id: k for k in kcm_list}
+    map_cap   = {c.id: c for c in cap_list}
+    map_tt    = {t.id: t for t in tt_list}
+    map_kcm   = {k.id: k for k in kcm_list}
+    map_tuyen = {t.id: t for t in tuyen_list}
 
-    # Tổng chiều dài quản lý của tuyến (dùng tính Tỉ lệ %)
+    # --- Tổng chiều dài quản lý của tuyến (dùng tính Tỉ lệ %) ---
     tong_chieu_dai = tuyen.chieu_dai_quan_ly or sum(
         (d.chieu_dai or 0) for d in doan_list
     )
+
+    # --- Gộp đoạn chính + đoạn đi chung, sắp xếp theo lý trình tăng dần ---
+    rows_gop = []
+    for d in doan_list:
+        rows_gop.append({"loai": "CHINH", "obj": d,
+                         "ly_trinh_sort": d.ly_trinh_dau or 0})
+    for ddc in ddc_list:
+        rows_gop.append({"loai": "DI_CHUNG", "obj": ddc,
+                         "ly_trinh_sort": ddc.ly_trinh_dau_di_chung or 0})
+    rows_gop.sort(key=lambda x: x["ly_trinh_sort"])
 
     return templates.TemplateResponse("tuyen_duong/detail.html", {
         "request":        request,
@@ -191,10 +205,13 @@ async def chi_tiet(request: Request, id: int,
         "tuyen":          tuyen,
         "thong_tin":      thong_tin,
         "doan_list":      doan_list,
+        "ddc_list":       ddc_list,
+        "rows_gop":       rows_gop,
         "geo":            geo,
         "map_cap":        map_cap,
         "map_tt":         map_tt,
         "map_kcm":        map_kcm,
+        "map_tuyen":      map_tuyen,
         "tong_chieu_dai": tong_chieu_dai,
     })
 
@@ -245,7 +262,6 @@ async def form_them_thong_tin(
 ):
     tuyen     = td_service.lay_theo_id(conn, id)
     thong_tin = ttt_repo.lay_theo_tuyen_id(conn, id)
-    # Nếu đã có → chuyển sang form sửa
     if thong_tin:
         return RedirectResponse(url=f"/tuyen-duong/{id}/thong-tin/sua", status_code=302)
     return templates.TemplateResponse("tuyen_duong/thong_tin_form.html", {
