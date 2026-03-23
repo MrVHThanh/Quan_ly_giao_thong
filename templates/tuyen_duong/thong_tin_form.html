@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}{{ "Cập nhật" if thong_tin else "Thêm" }} thông tin — {{ tuyen.ma_tuyen }}{% endblock %}
+{% block page_title %}
+  {{ "Cập nhật" if thong_tin else "Thêm" }} thông tin tuyến
+  <span class="text-muted fw-normal fs-6 ms-2">{{ tuyen.ma_tuyen }} — {{ tuyen.ten_tuyen }}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="/tuyen-duong/{{ tuyen.id }}" class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-arrow-left me-1"></i>Quay lại
+</a>
+{% endblock %}
+
+{% block content %}
+{% if loi %}
+<div class="alert alert-danger py-2 small">{{ loi }}</div>
+{% endif %}
+
+<form method="post"
+      action="/tuyen-duong/{{ tuyen.id }}/thong-tin/{{ 'sua' if thong_tin else 'them' }}">
+
+  <div class="row g-3">
+
+    {# ── CỘT TRÁI: các trường nhập liệu ── #}
+    <div class="col-lg-8">
+
+      {# Mô tả chung #}
+      <div class="card mb-3">
+        <div class="card-header bg-white py-2 fw-semibold small">
+          <i class="bi bi-file-text me-1 text-primary"></i>Mô tả chung
+          <span class="text-muted fw-normal">(hiển thị nổi bật trên trang tuyến)</span>
+        </div>
+        <div class="card-body">
+          <textarea name="mo_ta" rows="5" class="form-control"
+                    placeholder="Giới thiệu tổng quát về tuyến đường...">{{ thong_tin.mo_ta if thong_tin and thong_tin.mo_ta else "" }}</textarea>
+        </div>
+      </div>
+
+      {# Lý do xây dựng #}
+      <div class="card mb-3">
+        <div class="card-header bg-white py-2 fw-semibold small">
+          <i class="bi bi-signpost-2 me-1 text-secondary"></i>Lý do xây dựng
+        </div>
+        <div class="card-body">
+          <textarea name="ly_do_xay_dung" rows="4" class="form-control"
+                    placeholder="Mục đích, căn cứ xây dựng tuyến đường...">{{ thong_tin.ly_do_xay_dung if thong_tin and thong_tin.ly_do_xay_dung else "" }}</textarea>
+        </div>
+      </div>
+
+      {# Đặc điểm địa lý #}
+      <div class="card mb-3">
+        <div class="card-header bg-white py-2 fw-semibold small">
+          <i class="bi bi-geo me-1 text-secondary"></i>Đặc điểm địa lý
+        </div>
+        <div class="card-body">
+          <textarea name="dac_diem_dia_ly" rows="4" class="form-control"
+                    placeholder="Địa hình, địa bàn đi qua, đặc điểm tự nhiên...">{{ thong_tin.dac_diem_dia_ly if thong_tin and thong_tin.dac_diem_dia_ly else "" }}</textarea>
+        </div>
+      </div>
+
+      {# Lịch sử hình thành #}
+      <div class="card mb-3">
+        <div class="card-header bg-white py-2 fw-semibold small">
+          <i class="bi bi-clock-history me-1 text-secondary"></i>Lịch sử hình thành
+        </div>
+        <div class="card-body">
+          <textarea name="lich_su_hinh_thanh" rows="4" class="form-control"
+                    placeholder="Quá trình hình thành, các lần nâng cấp...">{{ thong_tin.lich_su_hinh_thanh if thong_tin and thong_tin.lich_su_hinh_thanh else "" }}</textarea>
+        </div>
+      </div>
+
+      {# Ý nghĩa kinh tế - xã hội #}
+      <div class="card mb-3">
+        <div class="card-header bg-white py-2 fw-semibold small">
+          <i class="bi bi-graph-up me-1 text-secondary"></i>Ý nghĩa kinh tế - xã hội
+        </div>
+        <div class="card-body">
+          <textarea name="y_nghia_kinh_te" rows="4" class="form-control"
+                    placeholder="Vai trò, tầm quan trọng đối với phát triển kinh tế - xã hội...">{{ thong_tin.y_nghia_kinh_te if thong_tin and thong_tin.y_nghia_kinh_te else "" }}</textarea>
+        </div>
+      </div>
+
+    </div>
+
+    {# ── CỘT PHẢI: ghi chú + nút lưu ── #}
+    <div class="col-lg-4">
+
+      {# Thông tin tuyến (chỉ đọc) #}
+      <div class="card mb-3 bg-light border-0">
+        <div class="card-body small">
+          <div class="fw-semibold mb-2">{{ tuyen.ma_tuyen }} — {{ tuyen.ten_tuyen }}</div>
+          <div class="text-muted">
+            <div>Điểm đầu: {{ tuyen.diem_dau or "—" }}</div>
+            <div>Điểm cuối: {{ tuyen.diem_cuoi or "—" }}</div>
+            <div>Chiều dài: {{ "%.3f"|format(tuyen.chieu_dai_quan_ly or 0) }} km</div>
+          </div>
+        </div>
+      </div>
+
+      {# Ghi chú nội bộ #}
+      <div class="card mb-3">
+        <div class="card-header bg-white py-2 fw-semibold small">
+          <i class="bi bi-sticky me-1 text-secondary"></i>Ghi chú nội bộ
+        </div>
+        <div class="card-body">
+          <textarea name="ghi_chu" rows="3" class="form-control"
+                    placeholder="Ghi chú nội bộ (không hiển thị công khai)...">{{ thong_tin.ghi_chu if thong_tin and thong_tin.ghi_chu else "" }}</textarea>
+        </div>
+      </div>
+
+      {# Nút lưu #}
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-floppy me-1"></i>
+          {{ "Cập nhật thông tin" if thong_tin else "Lưu thông tin" }}
+        </button>
+        <a href="/tuyen-duong/{{ tuyen.id }}" class="btn btn-outline-secondary">
+          Hủy
+        </a>
+      </div>
+
+      {% if thong_tin and thong_tin.updated_at %}
+      <div class="text-muted text-center mt-2" style="font-size:.72rem;">
+        Cập nhật lần cuối: {{ thong_tin.updated_at }}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</form>
+{% endblock %}

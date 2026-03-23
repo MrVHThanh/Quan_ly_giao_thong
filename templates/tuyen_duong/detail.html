@@ -66,6 +66,119 @@
   </div>
 </div>
 
+{# ── THÔNG TIN MÔ TẢ TUYẾN ĐƯỜNG ── #}
+{% if thong_tin %}
+<div class="card mb-3">
+  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <h6 class="mb-0 text-primary">
+      <i class="bi bi-file-text me-1"></i>Thông tin tuyến đường
+    </h6>
+    {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+    <a href="/tuyen-duong/{{ tuyen.id }}/thong-tin/sua"
+       class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.75rem;">
+      <i class="bi bi-pencil me-1"></i>Cập nhật
+    </a>
+    {% endif %}
+  </div>
+  <div class="card-body">
+
+    {# Mô tả chung — luôn hiển thị nếu có #}
+    {% if thong_tin.mo_ta %}
+    <p class="text-body mb-3" style="white-space: pre-line; line-height: 1.75; font-size: .92rem;">
+      {{ thong_tin.mo_ta }}
+    </p>
+    {% endif %}
+
+    {# Các trường chi tiết — hiển thị dạng accordion nếu có dữ liệu #}
+    {% set co_chi_tiet = thong_tin.ly_do_xay_dung or thong_tin.dac_diem_dia_ly or thong_tin.lich_su_hinh_thanh or thong_tin.y_nghia_kinh_te %}
+    {% if co_chi_tiet %}
+    <div class="accordion accordion-flush border-top pt-2" id="acc-thongtin">
+
+      {% if thong_tin.ly_do_xay_dung %}
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-lydo">
+            <i class="bi bi-signpost-2 me-2 text-secondary"></i>Lý do xây dựng
+          </button>
+        </h2>
+        <div id="acc-lydo" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
+          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
+               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.ly_do_xay_dung }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if thong_tin.dac_diem_dia_ly %}
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-dialy">
+            <i class="bi bi-geo me-2 text-secondary"></i>Đặc điểm địa lý
+          </button>
+        </h2>
+        <div id="acc-dialy" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
+          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
+               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.dac_diem_dia_ly }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if thong_tin.lich_su_hinh_thanh %}
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-lichsu">
+            <i class="bi bi-clock-history me-2 text-secondary"></i>Lịch sử hình thành
+          </button>
+        </h2>
+        <div id="acc-lichsu" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
+          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
+               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.lich_su_hinh_thanh }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if thong_tin.y_nghia_kinh_te %}
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-0 bg-transparent fw-semibold small"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#acc-ynghia">
+            <i class="bi bi-graph-up me-2 text-secondary"></i>Ý nghĩa kinh tế - xã hội
+          </button>
+        </h2>
+        <div id="acc-ynghia" class="accordion-collapse collapse" data-bs-parent="#acc-thongtin">
+          <div class="accordion-body px-0 pt-1 pb-2 text-muted small"
+               style="white-space: pre-line; line-height: 1.7;">{{ thong_tin.y_nghia_kinh_te }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endif %}
+
+    {% if thong_tin.updated_at %}
+    <div class="text-end text-muted" style="font-size:.72rem;">
+      Cập nhật lần cuối: {{ thong_tin.updated_at }}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% else %}
+{# Chưa có thông tin — chỉ hiện với BIEN_TAP/ADMIN #}
+{% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+<div class="alert alert-light border d-flex align-items-center gap-2 mb-3 py-2">
+  <i class="bi bi-file-earmark-plus text-muted"></i>
+  <span class="small text-muted">Chưa có thông tin mô tả cho tuyến này.</span>
+  <a href="/tuyen-duong/{{ tuyen.id }}/thong-tin/them" class="ms-auto btn btn-sm btn-outline-primary py-0">
+    Thêm thông tin
+  </a>
+</div>
+{% endif %}
+{% endif %}
+
 {# ── BẢNG ĐOẠN TUYẾN ── #}
 <div class="card mb-3">
   <div class="card-header bg-white fw-semibold py-2 d-flex justify-content-between align-items-center">

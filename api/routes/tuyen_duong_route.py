@@ -33,6 +33,7 @@ import repositories.tinh_trang_repository as tt_repo
 import repositories.ket_cau_mat_repository as kcm_repo
 import repositories.don_vi_repository as dv_repo
 import repositories.tuyen_duong_geo_repository as geo_repo
+import repositories.thong_tin_tuyen_repository as ttt_repo
 
 router = APIRouter()
 templates = Jinja2Templates(directory=os.path.join(_ROOT, "templates"))
@@ -165,9 +166,10 @@ async def luu_them(
 @router.get("/{id}", response_class=HTMLResponse)
 async def chi_tiet(request: Request, id: int,
                    user=Depends(yeu_cau_dang_nhap), conn=Depends(get_db)):
-    tuyen     = td_service.lay_theo_id(conn, id)
-    doan_list = dt_service.lay_theo_tuyen_id(conn, id)
-    geo       = geo_repo.lay_theo_tuyen_id(conn, id)
+    tuyen      = td_service.lay_theo_id(conn, id)
+    doan_list  = dt_service.lay_theo_tuyen_id(conn, id)
+    geo        = geo_repo.lay_theo_tuyen_id(conn, id)
+    thong_tin  = ttt_repo.lay_theo_tuyen_id(conn, id)
 
     # --- Lookup maps: id → object (hiển thị tên thay ID trong bảng đoạn) ---
     cap_list = cd_repo.lay_dang_hoat_dong(conn)
@@ -184,14 +186,15 @@ async def chi_tiet(request: Request, id: int,
     )
 
     return templates.TemplateResponse("tuyen_duong/detail.html", {
-        "request":       request,
-        "user":          user,
-        "tuyen":         tuyen,
-        "doan_list":     doan_list,
-        "geo":           geo,
-        "map_cap":       map_cap,
-        "map_tt":        map_tt,
-        "map_kcm":       map_kcm,
+        "request":        request,
+        "user":           user,
+        "tuyen":          tuyen,
+        "thong_tin":      thong_tin,
+        "doan_list":      doan_list,
+        "geo":            geo,
+        "map_cap":        map_cap,
+        "map_tt":         map_tt,
+        "map_kcm":        map_kcm,
         "tong_chieu_dai": tong_chieu_dai,
     })
 
@@ -231,6 +234,88 @@ async def luu_sua(
             "cap_quan_ly_list": cql_repo.lay_dang_hoat_dong(conn),
             "don_vi_list": dv_repo.lay_dang_hoat_dong(conn),
         }, status_code=400)
+
+
+# ── ROUTES THÔNG TIN MÔ TẢ TUYẾN ─────────────────────────────────────────
+
+@router.get("/{id}/thong-tin/them", response_class=HTMLResponse)
+async def form_them_thong_tin(
+    request: Request, id: int,
+    user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db),
+):
+    tuyen     = td_service.lay_theo_id(conn, id)
+    thong_tin = ttt_repo.lay_theo_tuyen_id(conn, id)
+    # Nếu đã có → chuyển sang form sửa
+    if thong_tin:
+        return RedirectResponse(url=f"/tuyen-duong/{id}/thong-tin/sua", status_code=302)
+    return templates.TemplateResponse("tuyen_duong/thong_tin_form.html", {
+        "request": request, "user": user,
+        "tuyen": tuyen, "thong_tin": None, "loi": None,
+    })
+
+
+@router.post("/{id}/thong-tin/them")
+async def luu_them_thong_tin(
+    request: Request, id: int,
+    mo_ta:               str = Form(None),
+    ly_do_xay_dung:      str = Form(None),
+    dac_diem_dia_ly:     str = Form(None),
+    lich_su_hinh_thanh:  str = Form(None),
+    y_nghia_kinh_te:     str = Form(None),
+    ghi_chu:             str = Form(None),
+    user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db),
+):
+    import models.thong_tin_tuyen as ttt_model
+    obj = ttt_model.ThongTinTuyen(
+        tuyen_id=id,
+        mo_ta=mo_ta or None,
+        ly_do_xay_dung=ly_do_xay_dung or None,
+        dac_diem_dia_ly=dac_diem_dia_ly or None,
+        lich_su_hinh_thanh=lich_su_hinh_thanh or None,
+        y_nghia_kinh_te=y_nghia_kinh_te or None,
+        ghi_chu=ghi_chu or None,
+    )
+    ttt_repo.them(conn, obj)
+    return RedirectResponse(url=f"/tuyen-duong/{id}", status_code=302)
+
+
+@router.get("/{id}/thong-tin/sua", response_class=HTMLResponse)
+async def form_sua_thong_tin(
+    request: Request, id: int,
+    user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db),
+):
+    tuyen     = td_service.lay_theo_id(conn, id)
+    thong_tin = ttt_repo.lay_theo_tuyen_id(conn, id)
+    if not thong_tin:
+        return RedirectResponse(url=f"/tuyen-duong/{id}/thong-tin/them", status_code=302)
+    return templates.TemplateResponse("tuyen_duong/thong_tin_form.html", {
+        "request": request, "user": user,
+        "tuyen": tuyen, "thong_tin": thong_tin, "loi": None,
+    })
+
+
+@router.post("/{id}/thong-tin/sua")
+async def luu_sua_thong_tin(
+    request: Request, id: int,
+    mo_ta:               str = Form(None),
+    ly_do_xay_dung:      str = Form(None),
+    dac_diem_dia_ly:     str = Form(None),
+    lich_su_hinh_thanh:  str = Form(None),
+    y_nghia_kinh_te:     str = Form(None),
+    ghi_chu:             str = Form(None),
+    user=Depends(yeu_cau_quyen_bien_tap), conn=Depends(get_db),
+):
+    thong_tin = ttt_repo.lay_theo_tuyen_id(conn, id)
+    if not thong_tin:
+        return RedirectResponse(url=f"/tuyen-duong/{id}", status_code=302)
+    thong_tin.mo_ta              = mo_ta or None
+    thong_tin.ly_do_xay_dung     = ly_do_xay_dung or None
+    thong_tin.dac_diem_dia_ly    = dac_diem_dia_ly or None
+    thong_tin.lich_su_hinh_thanh = lich_su_hinh_thanh or None
+    thong_tin.y_nghia_kinh_te    = y_nghia_kinh_te or None
+    thong_tin.ghi_chu            = ghi_chu or None
+    ttt_repo.sua(conn, thong_tin)
+    return RedirectResponse(url=f"/tuyen-duong/{id}", status_code=302)
 
 
 @router.post("/{id}/xoa")
