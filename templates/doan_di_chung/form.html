@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Sửa đoạn đi chung — {{ ddc.ma_doan_di_chung }}{% endblock %}
+{% block page_title %}
+  Sửa đoạn đi chung
+  <span class="text-muted fw-normal fs-6 ms-2">{{ ddc.ma_doan_di_chung }}</span>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="/tuyen-duong/{{ ddc.tuyen_di_chung_id }}"
+   class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-arrow-left me-1"></i>Quay lại
+</a>
+{% endblock %}
+
+{% block content %}
+{% if loi %}
+<div class="alert alert-danger py-2 small">{{ loi }}</div>
+{% endif %}
+
+<form method="post" action="/doan-di-chung/{{ ddc.id }}/sua">
+  <div class="row g-3">
+
+    {# ── CỘT TRÁI: Form nhập liệu ── #}
+    <div class="col-lg-7">
+
+      {# Lý trình theo tuyến đi nhờ #}
+      <div class="card mb-3">
+        <div class="card-header bg-white py-2 fw-semibold small">
+          <i class="bi bi-signpost-split me-1 text-primary"></i>
+          Lý trình theo tuyến đi nhờ
+          {% if tuyen_di_chung %}
+          <span class="text-primary">({{ tuyen_di_chung.ma_tuyen }})</span>
+          {% endif %}
+          <span class="text-danger ms-1">*</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label small">Lý trình đầu (km)</label>
+              <input type="number" name="ly_trinh_dau_di_chung"
+                     class="form-control form-control-sm"
+                     step="0.001" required
+                     value="{{ ddc.ly_trinh_dau_di_chung }}">
+              <div class="form-text">
+                {{ ddc.ly_trinh_dau_di_chung | ly_trinh }}
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Lý trình cuối (km)</label>
+              <input type="number" name="ly_trinh_cuoi_di_chung"
+                     class="form-control form-control-sm"
+                     step="0.001" required
+                     value="{{ ddc.ly_trinh_cuoi_di_chung }}">
+              <div class="form-text">
+                {{ ddc.ly_trinh_cuoi_di_chung | ly_trinh }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# Lý trình theo tuyến chủ #}
+      <div class="card mb-3">
+        <div class="card-header bg-white py-2 fw-semibold small">
+          <i class="bi bi-signpost me-1 text-secondary"></i>
+          Lý trình theo tuyến chủ
+          {% if tuyen_chinh %}
+          <span class="text-secondary">({{ tuyen_chinh.ma_tuyen }})</span>
+          {% endif %}
+          <span class="text-muted fw-normal ms-1">(tuỳ chọn)</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label small">Lý trình đầu (km)</label>
+              <input type="number" name="ly_trinh_dau_tuyen_chinh"
+                     class="form-control form-control-sm"
+                     step="0.001"
+                     value="{{ ddc.ly_trinh_dau_tuyen_chinh or '' }}">
+              {% if ddc.ly_trinh_dau_tuyen_chinh %}
+              <div class="form-text">{{ ddc.ly_trinh_dau_tuyen_chinh | ly_trinh }}</div>
+              {% endif %}
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Lý trình cuối (km)</label>
+              <input type="number" name="ly_trinh_cuoi_tuyen_chinh"
+                     class="form-control form-control-sm"
+                     step="0.001"
+                     value="{{ ddc.ly_trinh_cuoi_tuyen_chinh or '' }}">
+              {% if ddc.ly_trinh_cuoi_tuyen_chinh %}
+              <div class="form-text">{{ ddc.ly_trinh_cuoi_tuyen_chinh | ly_trinh }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# Ghi chú #}
+      <div class="card mb-3">
+        <div class="card-header bg-white py-2 fw-semibold small">
+          <i class="bi bi-sticky me-1 text-secondary"></i>Ghi chú
+        </div>
+        <div class="card-body">
+          <textarea name="ghi_chu" rows="3" class="form-control form-control-sm"
+                    placeholder="Ghi chú bổ sung...">{% if ddc.ghi_chu %}{{ ddc.ghi_chu }}{% endif %}</textarea>
+        </div>
+      </div>
+
+    </div>
+
+    {# ── CỘT PHẢI: thông tin tham chiếu ── #}
+    <div class="col-lg-5">
+
+      {# Thông tin đoạn đi chung — chỉ đọc #}
+      <div class="card mb-3 bg-light border-0">
+        <div class="card-body small">
+          <div class="fw-semibold mb-2 text-warning-emphasis">
+            <i class="bi bi-arrow-left-right me-1"></i>{{ ddc.ma_doan_di_chung }}
+          </div>
+          <table class="table table-sm table-borderless mb-0">
+            <tr>
+              <td class="text-muted ps-0">Tuyến đi nhờ</td>
+              <td class="fw-semibold">
+                {% if tuyen_di_chung %}
+                  {{ tuyen_di_chung.ma_tuyen }}
+                  <span class="text-muted fw-normal">({{ tuyen_di_chung.ten_tuyen }})</span>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted ps-0">Tuyến chủ</td>
+              <td class="fw-semibold">
+                {% if tuyen_chinh %}
+                  {{ tuyen_chinh.ma_tuyen }}
+                  <span class="text-muted fw-normal">({{ tuyen_chinh.ten_tuyen }})</span>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted ps-0">Đoạn vật lý</td>
+              <td>
+                {% if doan_vat_ly %}
+                  <a href="/doan-tuyen/{{ doan_vat_ly.id }}" class="text-decoration-none">
+                    {{ doan_vat_ly.ma_doan }}
+                  </a>
+                  <span class="text-muted">
+                    ({{ doan_vat_ly.ly_trinh_dau|ly_trinh }} – {{ doan_vat_ly.ly_trinh_cuoi|ly_trinh }})
+                  </span>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      {# Nút lưu / hủy / xóa #}
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-warning">
+          <i class="bi bi-floppy me-1"></i>Lưu cập nhật
+        </button>
+        <a href="/tuyen-duong/{{ ddc.tuyen_di_chung_id }}"
+           class="btn btn-outline-secondary">Hủy</a>
+      </div>
+
+      {% if user and user.loai_quyen == 'ADMIN' %}
+      <div class="mt-3">
+        <form method="post" action="/doan-di-chung/{{ ddc.id }}/xoa"
+              onsubmit="return confirm('Xóa đoạn đi chung {{ ddc.ma_doan_di_chung }}?\nThao tác này không thể hoàn tác.')">
+          <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+            <i class="bi bi-trash me-1"></i>Xóa đoạn đi chung
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</form>
+{% endblock %}

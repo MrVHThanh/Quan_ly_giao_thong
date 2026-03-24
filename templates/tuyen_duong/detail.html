@@ -290,7 +290,13 @@
             <td class="text-end small text-muted">
               {% if tong_chieu_dai and cd_ddc %}{{ "%.1f"|format(cd_ddc / tong_chieu_dai * 100) }}%{% else %}—{% endif %}
             </td>
-            <td></td>
+            <td>
+              {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+              <a href="/doan-di-chung/{{ ddc.id }}/sua"
+                 class="btn btn-xs btn-outline-warning py-0 px-2"
+                 style="font-size:.73rem;">Sửa</a>
+              {% endif %}
+            </td>
           </tr>
           {% endif %}
 

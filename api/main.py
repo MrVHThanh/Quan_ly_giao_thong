@@ -21,7 +21,11 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from api.routes import auth, doan_tuyen_route, thong_ke, ban_do, tuyen_duong_route
+from api.routes import auth
+from api.routes import tuyen_duong_route as tuyen_duong
+from api.routes import doan_tuyen_route as doan_tuyen
+from api.routes import doan_di_chung_route as doan_di_chung
+from api.routes import thong_ke, ban_do
 
 app = FastAPI(
     title="Hệ thống Quản lý Đường bộ Lào Cai",
@@ -62,9 +66,10 @@ templates.env.filters["format_ly_trinh"] = _format_ly_trinh
 
 # ── Đăng ký routes ─────────────────────────────────────────────────────────
 app.include_router(auth.router,        prefix="/auth",       tags=["Xác thực"])
-app.include_router(tuyen_duong_route.router, prefix="/tuyen-duong", tags=["Tuyến đường"])
-app.include_router(doan_tuyen_route.router,  prefix="/doan-tuyen",  tags=["Đoạn tuyến"])
-app.include_router(thong_ke.router,    prefix="/thong-ke",    tags=["Thống kê"])
+app.include_router(tuyen_duong.router, prefix="/tuyen-duong", tags=["Tuyến đường"])
+app.include_router(doan_tuyen.router,    prefix="/doan-tuyen",    tags=["Đoạn tuyến"])
+app.include_router(doan_di_chung.router, prefix="/doan-di-chung", tags=["Đoạn đi chung"])
+app.include_router(thong_ke.router,      prefix="/thong-ke",      tags=["Thống kê"])
 app.include_router(ban_do.router,      prefix="/ban-do",      tags=["Bản đồ"])
 
 
