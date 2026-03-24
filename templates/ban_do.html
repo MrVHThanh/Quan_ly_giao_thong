@@ -82,7 +82,7 @@ fetch('/ban-do/api/geo-all')
           <div><b>Mã:</b> ${p.ma_tuyen}</div>
           <div><b>Chiều dài QL:</b> ${(p.chieu_dai_quan_ly||0).toFixed(3)} km</div>
           <div><b>Dài GPS:</b> ${(p.chieu_dai_gps||0).toFixed(3)} km</div>
-          <div class="mt-1"><a href="/tuyen-duong/${p.tuyen_id}" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:.75rem;">Chi tiết →</a></div>`;
+          <div class="mt-1"><a href="/tuyen-duong/${p.tuyen_id}" class="btn-gt btn-gt-outline btn-gt-sm py-0 px-2" style="font-size:.75rem;">Chi tiết →</a></div>`;
       });
       line.bindTooltip(p.ma_tuyen, { permanent: false, direction: 'top', className: 'fw-semibold' });
 

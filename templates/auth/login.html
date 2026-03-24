@@ -15,18 +15,18 @@
   <div class="brand text-center">🛣️ GT Lào Cai</div>
   <h6 class="text-muted text-center mb-3">Đăng nhập hệ thống</h6>
   {% if loi %}
-  <div class="alert alert-danger py-2 small">{{ loi }}</div>
+  <div class="alert alert-danger py-2 small" data-auto-close="5000">{{ loi }}</div>
   {% endif %}
   <form method="post" action="/auth/login">
     <div class="mb-3">
-      <label class="form-label small">Tên đăng nhập</label>
-      <input name="ten_dang_nhap" class="form-control" required autofocus>
+      <label class="form-label form-gt-label small">Tên đăng nhập</label>
+      <input name="ten_dang_nhap" class="form-control form-gt-input" required autofocus>
     </div>
     <div class="mb-3">
-      <label class="form-label small">Mật khẩu</label>
-      <input name="mat_khau" type="password" class="form-control" required>
+      <label class="form-label form-gt-label small">Mật khẩu</label>
+      <input name="mat_khau" type="password" class="form-control form-gt-input" required>
     </div>
-    <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+    <button type="submit" class="btn-gt btn-gt-primary w-100">Đăng nhập</button>
   </form>
   <hr class="my-3">
   <div class="text-center small">

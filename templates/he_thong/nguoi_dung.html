@@ -3,7 +3,7 @@
 {% block page_title %}Quản lý người dùng{% endblock %}
 
 {% block topbar_actions %}
-<button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalThem">
+<button class="btn-gt btn-gt-primary btn-gt-sm" data-bs-toggle="modal" data-bs-target="#modalThem">
   <i class="bi bi-person-plus-fill me-1"></i>Tạo người dùng
 </button>
 {% endblock %}
@@ -29,46 +29,42 @@
 {% set hoat_dong = nguoi_dung_list | selectattr('is_active', 'equalto', 1) | selectattr('is_approved', 'equalto', 1) | list | length %}
 <div class="row g-3 mb-4">
   <div class="col-md-3">
-    <div class="card stat-card blue">
-      <div class="card-body py-2 px-3">
-        <div class="text-muted small">Tổng tài khoản</div>
-        <div class="fw-bold fs-4">{{ tong }}</div>
-      </div>
+    <div class="stat-card">
+      <div class="stat-card-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-card-value">{{ tong }}</div>
+      <div class="stat-card-label">Tổng tài khoản</div>
     </div>
   </div>
   <div class="col-md-3">
-    <div class="card stat-card green">
-      <div class="card-body py-2 px-3">
-        <div class="text-muted small">Đang hoạt động</div>
-        <div class="fw-bold fs-4 text-success">{{ hoat_dong }}</div>
-      </div>
+    <div class="stat-card">
+      <div class="stat-card-icon" style="background:#d4edda;color:#28a745;"><i class="bi bi-person-check-fill"></i></div>
+      <div class="stat-card-value">{{ hoat_dong }}</div>
+      <div class="stat-card-label">Đang hoạt động</div>
     </div>
   </div>
   <div class="col-md-3">
-    <div class="card stat-card orange">
-      <div class="card-body py-2 px-3">
-        <div class="text-muted small">Chờ duyệt</div>
-        <div class="fw-bold fs-4 text-warning">{{ cho_duyet }}</div>
-      </div>
+    <div class="stat-card">
+      <div class="stat-card-icon" style="background:#fff3cd;color:#856404;"><i class="bi bi-hourglass-split"></i></div>
+      <div class="stat-card-value">{{ cho_duyet }}</div>
+      <div class="stat-card-label">Chờ duyệt</div>
     </div>
   </div>
   <div class="col-md-3">
-    <div class="card stat-card purple">
-      <div class="card-body py-2 px-3">
-        <div class="text-muted small">Vô hiệu</div>
-        <div class="fw-bold fs-4 text-secondary">{{ tong - hoat_dong - cho_duyet }}</div>
-      </div>
+    <div class="stat-card">
+      <div class="stat-card-icon" style="background:#f8d7da;color:#721c24;"><i class="bi bi-person-x-fill"></i></div>
+      <div class="stat-card-value">{{ tong - hoat_dong - cho_duyet }}</div>
+      <div class="stat-card-label">Vô hiệu</div>
     </div>
   </div>
 </div>
 
 {# ── Bảng người dùng ────────────────────────────────────────────────── #}
-<div class="card">
-  <div class="card-header bg-white py-2">
+<div class="card-gt">
+  <div class="card-gt-header py-2">
     <span class="fw-semibold"><i class="bi bi-people-fill me-2 text-primary"></i>Danh sách tài khoản ({{ tong }})</span>
   </div>
-  <div class="card-body p-0">
-    <table class="table table-sm table-hover mb-0 align-middle">
+  <div class="card-gt-body p-0">
+    <table class="table-gt mb-0 align-middle">
       <thead class="table-light">
         <tr>
           <th style="width:40px">#</th>
@@ -203,7 +199,7 @@
               <div class="input-group input-group-sm">
                 <input type="password" name="mat_khau" id="themMK" class="form-control" required
                        minlength="8" placeholder="Tối thiểu 8 ký tự">
-                <button type="button" class="btn btn-outline-secondary" onclick="togglePwd('themMK','iconThemMK')">
+                <button type="button" class="btn-gt btn-gt-outline" onclick="togglePwd('themMK','iconThemMK')">
                   <i class="bi bi-eye" id="iconThemMK"></i>
                 </button>
               </div>
@@ -251,7 +247,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Tạo tài khoản</button>
+          <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm"><i class="bi bi-plus-lg me-1"></i>Tạo tài khoản</button>
         </div>
       </form>
     </div>
@@ -325,7 +321,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-floppy me-1"></i>Lưu thay đổi</button>
+          <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm"><i class="bi bi-floppy me-1"></i>Lưu thay đổi</button>
         </div>
       </form>
     </div>
@@ -353,7 +349,7 @@
             <div class="input-group input-group-sm">
               <input type="password" name="mat_khau_moi" id="mkMoi" class="form-control" required
                      minlength="8" placeholder="Tối thiểu 8 ký tự">
-              <button type="button" class="btn btn-outline-secondary" onclick="togglePwd('mkMoi','iconMKMoi')">
+              <button type="button" class="btn-gt btn-gt-outline" onclick="togglePwd('mkMoi','iconMKMoi')">
                 <i class="bi bi-eye" id="iconMKMoi"></i>
               </button>
             </div>
@@ -363,7 +359,7 @@
             <div class="input-group input-group-sm">
               <input type="password" id="mkXacNhan" class="form-control" required
                      minlength="8" placeholder="Nhập lại mật khẩu mới">
-              <button type="button" class="btn btn-outline-secondary" onclick="togglePwd('mkXacNhan','iconMKXN')">
+              <button type="button" class="btn-gt btn-gt-outline" onclick="togglePwd('mkXacNhan','iconMKXN')">
                 <i class="bi bi-eye" id="iconMKXN"></i>
               </button>
             </div>
@@ -376,7 +372,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" id="btnDoiMK" class="btn btn-sm btn-warning">
+          <button type="submit" id="btnDoiMK" class="btn-gt btn-gt-primary btn-gt-sm">
             <i class="bi bi-key me-1"></i>Đặt lại mật khẩu
           </button>
         </div>
@@ -413,7 +409,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-sm btn-success">
+          <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm">
             <i class="bi bi-check-lg me-1"></i>Duyệt & kích hoạt
           </button>
         </div>

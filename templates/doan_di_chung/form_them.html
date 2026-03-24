@@ -3,7 +3,7 @@
 {% block page_title %}Thêm đoạn dùng chung{% endblock %}
 
 {% block topbar_actions %}
-<a href="/doan-di-chung/" class="btn btn-sm btn-outline-secondary">
+<a href="/doan-di-chung/" class="btn-gt btn-gt-outline btn-gt-sm">
   <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
 </a>
 {% endblock %}
@@ -22,11 +22,11 @@
   <div class="col-lg-7">
 
     <!-- Card 1: Tuyến & Đoạn vật lý -->
-    <div class="card mb-3">
-      <div class="card-header bg-white fw-semibold small">
+    <div class="card-gt mb-3">
+      <div class="card-gt-header fw-semibold small">
         <i class="bi bi-signpost-2 me-2 text-primary"></i>Tuyến và đoạn vật lý
       </div>
-      <div class="card-body">
+      <div class="card-gt-body">
         <div class="mb-3">
           <label class="form-label small fw-semibold">Tuyến đi nhờ <span class="text-danger">*</span></label>
           <select name="tuyen_di_chung_id" class="form-select form-select-sm" required id="sel_tuyen_di_chung">
@@ -79,11 +79,11 @@
     </div>
 
     <!-- Card 2: Lý trình theo tuyến đi nhờ -->
-    <div class="card mb-3">
-      <div class="card-header bg-white fw-semibold small">
+    <div class="card-gt mb-3">
+      <div class="card-gt-header fw-semibold small">
         <i class="bi bi-arrow-left-right me-2 text-warning"></i>Lý trình theo tuyến đi nhờ
       </div>
-      <div class="card-body">
+      <div class="card-gt-body">
         <div class="row g-3">
           <div class="col-6">
             <label class="form-label small fw-semibold">Lý trình đầu (km) <span class="text-danger">*</span></label>
@@ -104,12 +104,12 @@
     </div>
 
     <!-- Card 3: Lý trình theo tuyến chủ -->
-    <div class="card mb-3">
-      <div class="card-header bg-white fw-semibold small">
+    <div class="card-gt mb-3">
+      <div class="card-gt-header fw-semibold small">
         <i class="bi bi-arrow-left-right me-2 text-secondary"></i>Lý trình theo tuyến chủ
         <span class="text-muted fw-normal">(tuỳ chọn)</span>
       </div>
-      <div class="card-body">
+      <div class="card-gt-body">
         <div class="row g-3">
           <div class="col-6">
             <label class="form-label small">Lý trình đầu (km)</label>
@@ -131,11 +131,11 @@
     </div>
 
     <!-- Card 4: Ghi chú -->
-    <div class="card mb-3">
-      <div class="card-header bg-white fw-semibold small">
+    <div class="card-gt mb-3">
+      <div class="card-gt-header fw-semibold small">
         <i class="bi bi-chat-left-text me-2 text-secondary"></i>Ghi chú
       </div>
-      <div class="card-body">
+      <div class="card-gt-body">
         <textarea name="ghi_chu" class="form-control form-control-sm" rows="3"
                   placeholder="Ghi chú thêm (không bắt buộc)">{{ form.ghi_chu or '' }}</textarea>
       </div>
@@ -145,11 +145,11 @@
 
   <!-- Cột phải: Hướng dẫn & Nút lệnh -->
   <div class="col-lg-5">
-    <div class="card mb-3 border-info">
-      <div class="card-header bg-info bg-opacity-10 small fw-semibold text-info">
+    <div class="card-gt mb-3 border-info">
+      <div class="card-gt-header small fw-semibold text-info">
         <i class="bi bi-info-circle me-2"></i>Hướng dẫn
       </div>
-      <div class="card-body small">
+      <div class="card-gt-body small">
         <ol class="ps-3 mb-0">
           <li class="mb-2">Chọn <strong>tuyến đi nhờ</strong> — tuyến sẽ sử dụng đoạn vật lý của tuyến khác.</li>
           <li class="mb-2">Chọn <strong>tuyến chủ</strong> — tuyến sở hữu đoạn đường đó.</li>
@@ -160,21 +160,21 @@
       </div>
     </div>
 
-    <div class="card mb-3">
-      <div class="card-header bg-white small fw-semibold">
+    <div class="card-gt mb-3">
+      <div class="card-gt-header small fw-semibold">
         <i class="bi bi-rulers me-2 text-secondary"></i>Phạm vi đoạn vật lý đã chọn
       </div>
-      <div class="card-body small" id="doan_info">
+      <div class="card-gt-body small" id="doan_info">
         <span class="text-muted">Chưa chọn đoạn vật lý.</span>
       </div>
     </div>
 
     <!-- Nút lệnh -->
     <div class="d-grid gap-2">
-      <button type="submit" class="btn btn-primary">
+      <button type="submit" class="btn-gt btn-gt-primary">
         <i class="bi bi-plus-circle me-2"></i>Thêm đoạn dùng chung
       </button>
-      <a href="/doan-di-chung/" class="btn btn-outline-secondary">
+      <a href="/doan-di-chung/" class="btn-gt btn-gt-outline">
         <i class="bi bi-x-circle me-1"></i>Hủy
       </a>
     </div>

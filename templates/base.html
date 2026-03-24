@@ -4,118 +4,75 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Quản lý Đường bộ Lào Cai{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
-  <style>
-    body { background:#f4f6f9; font-size:0.9rem; }
-
-    /* ── Sidebar ── */
-    .sidebar {
-      width: 220px; min-height: 100vh;
-      background: #1a3a5c;
-      position: fixed; top: 0; left: 0; z-index: 100;
-      transition: left .25s ease, width .25s ease;
-      overflow: hidden;
-    }
-    .sidebar.hidden { left: -220px; }
-    .sidebar .brand { padding:1.2rem 1rem; color:#fff; font-weight:700; font-size:1rem; border-bottom:1px solid rgba(255,255,255,.15); white-space:nowrap; }
-    .sidebar .nav-link { color:rgba(255,255,255,.75); padding:.5rem 1rem; border-radius:6px; margin:2px 8px; white-space:nowrap; }
-    .sidebar .nav-link:hover, .sidebar .nav-link.active { background:rgba(255,255,255,.15); color:#fff; }
-    .sidebar .nav-section { color:rgba(255,255,255,.4); font-size:.7rem; text-transform:uppercase; padding:.8rem 1rem .2rem; letter-spacing:.08em; white-space:nowrap; }
-
-    /* ── Main content ── */
-    .main-content {
-      margin-left: 220px;
-      padding: 1.5rem;
-      transition: margin-left .25s ease;
-    }
-    .main-content.expanded { margin-left: 0; }
-
-    /* ── Topbar ── */
-    .topbar { background:#fff; padding:.6rem 1.5rem; margin:-1.5rem -1.5rem 1.5rem; border-bottom:1px solid #e0e0e0; display:flex; justify-content:space-between; align-items:center; }
-
-    /* ── Nút toggle sidebar ── */
-    .btn-toggle-sidebar {
-      background: none; border: none; color: #555;
-      padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 1.1rem;
-      transition: background .15s;
-    }
-    .btn-toggle-sidebar:hover { background: #f0f0f0; }
-
-    /* ── Các style khác ── */
-    .badge-cap { font-size:.7rem; }
-    .table th { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:#666; font-weight:600; }
-    .card { border:none; box-shadow:0 1px 4px rgba(0,0,0,.08); }
-    .stat-card { border-left:4px solid; }
-    .stat-card.blue   { border-color:#0d6efd; }
-    .stat-card.green  { border-color:#198754; }
-    .stat-card.orange { border-color:#fd7e14; }
-    .stat-card.purple { border-color:#6f42c1; }
-  </style>
-  {% block extra_head %}{% endblock %}
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
 
+<div class="sidebar-overlay"></div>
+
 <!-- Sidebar -->
-<nav class="sidebar d-flex flex-column" id="sidebar">
-  <div class="brand"><i class="bi bi-signpost-2-fill me-2"></i>Giao thông Lào Cai</div>
-  <ul class="nav flex-column mt-2 flex-grow-1">
-    <li class="nav-section">Tổng quan</li>
-    <li class="nav-item">
-      <a class="nav-link {% if request.url.path == '/' %}active{% endif %}" href="/">
-        <i class="bi bi-speedometer2 me-2"></i>Dashboard
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if '/thong-ke' in request.url.path %}active{% endif %}" href="/thong-ke/">
-        <i class="bi bi-bar-chart-fill me-2"></i>Thống kê
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if '/ban-do' in request.url.path %}active{% endif %}" href="/ban-do/">
-        <i class="bi bi-map-fill me-2"></i>Bản đồ
-      </a>
-    </li>
-    <li class="nav-section mt-2">Dữ liệu</li>
-    <li class="nav-item">
-      <a class="nav-link {% if '/tuyen-duong' in request.url.path %}active{% endif %}" href="/tuyen-duong/">
-        <i class="bi bi-geo-alt-fill me-2"></i>Tuyến đường
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if '/doan-tuyen' in request.url.path and '/doan-di-chung' not in request.url.path %}active{% endif %}" href="/doan-tuyen/">
-        <i class="bi bi-diagram-3-fill me-2"></i>Đoạn tuyến
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if '/doan-di-chung' in request.url.path %}active{% endif %}" href="/doan-di-chung/">
-        <i class="bi bi-intersect me-2"></i>Đoạn dùng chung
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if '/danh-muc/quan-ly' in request.url.path %}active{% endif %}" href="/danh-muc/quan-ly">
-        <i class="bi bi-shield-fill me-2"></i>Thông tin quản lý
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if '/danh-muc/ky-thuat' in request.url.path %}active{% endif %}" href="/danh-muc/ky-thuat">
-        <i class="bi bi-tools me-2"></i>Thông tin kỹ thuật
-      </a>
-    </li>
+<nav class="sidebar" id="sidebar">
+  <a class="sidebar-brand" href="/">
+    <div class="sidebar-brand-icon"><i class="bi bi-signpost-2-fill"></i></div>
+    <div>
+      <div class="sidebar-brand-text">Giao thông Lào Cai</div>
+      <div class="sidebar-brand-sub">Sở Xây dựng</div>
+    </div>
+  </a>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Tổng quan</div>
+    <a class="sidebar-link {% if request.url.path == '/' %}active{% endif %}" href="/">
+      <span class="sidebar-link-icon"><i class="bi bi-speedometer2"></i></span>Dashboard
+    </a>
+    <a class="sidebar-link {% if '/thong-ke' in request.url.path %}active{% endif %}" href="/thong-ke/">
+      <span class="sidebar-link-icon"><i class="bi bi-bar-chart-fill"></i></span>Thống kê
+    </a>
+    <a class="sidebar-link {% if '/ban-do' in request.url.path %}active{% endif %}" href="/ban-do/">
+      <span class="sidebar-link-icon"><i class="bi bi-map-fill"></i></span>Bản đồ
+    </a>
+
+    <div class="sidebar-section-label">Dữ liệu</div>
+    <a class="sidebar-link {% if '/tuyen-duong' in request.url.path %}active{% endif %}" href="/tuyen-duong/">
+      <span class="sidebar-link-icon"><i class="bi bi-geo-alt-fill"></i></span>Tuyến đường
+    </a>
+    <a class="sidebar-link {% if '/doan-tuyen' in request.url.path and '/doan-di-chung' not in request.url.path %}active{% endif %}" href="/doan-tuyen/">
+      <span class="sidebar-link-icon"><i class="bi bi-diagram-3-fill"></i></span>Đoạn tuyến
+    </a>
+    <a class="sidebar-link {% if '/doan-di-chung' in request.url.path %}active{% endif %}" href="/doan-di-chung/">
+      <span class="sidebar-link-icon"><i class="bi bi-intersect"></i></span>Đoạn dùng chung
+    </a>
+    <a class="sidebar-link {% if '/danh-muc/quan-ly' in request.url.path %}active{% endif %}" href="/danh-muc/quan-ly">
+      <span class="sidebar-link-icon"><i class="bi bi-shield-fill"></i></span>Thông tin quản lý
+    </a>
+    <a class="sidebar-link {% if '/danh-muc/ky-thuat' in request.url.path %}active{% endif %}" href="/danh-muc/ky-thuat">
+      <span class="sidebar-link-icon"><i class="bi bi-tools"></i></span>Thông tin kỹ thuật
+    </a>
+
     {% if user and user.loai_quyen == 'ADMIN' %}
-    <li class="nav-section mt-2">Hệ thống</li>
-    <li class="nav-item">
-      <a class="nav-link {% if '/he-thong/nguoi-dung' in request.url.path %}active{% endif %}" href="/he-thong/nguoi-dung">
-        <i class="bi bi-people-fill me-2"></i>Quản lý người dùng
-      </a>
-    </li>
+    <div class="sidebar-section-label">Hệ thống</div>
+    <a class="sidebar-link {% if '/he-thong/nguoi-dung' in request.url.path %}active{% endif %}" href="/he-thong/nguoi-dung">
+      <span class="sidebar-link-icon"><i class="bi bi-people-fill"></i></span>Quản lý người dùng
+    </a>
     {% endif %}
-  </ul>
+  </div>
+
   {% if user %}
-  <div class="px-3 py-2 border-top border-secondary">
-    <small class="text-white-50 d-block">{{ user.loai_quyen if user.loai_quyen is defined else '' }}</small>
-    <a href="/auth/logout" class="text-white-50 text-decoration-none" style="font-size:.8rem;">
-      <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+  <div class="sidebar-user">
+    <div class="sidebar-user-avatar">{{ user.id[0]|upper }}</div>
+    <div>
+      <div class="sidebar-user-name">{{ user.id }}</div>
+      <div class="sidebar-user-role">{{ user.loai_quyen if user.loai_quyen is defined else '' }}</div>
+    </div>
+    <a href="/auth/logout" class="sidebar-user-logout" title="Đăng xuất">
+      <i class="bi bi-box-arrow-right"></i>
     </a>
   </div>
   {% endif %}
@@ -124,13 +81,13 @@
 <!-- Main -->
 <div class="main-content" id="mainContent">
   <div class="topbar">
-    <div class="d-flex align-items-center gap-2">
+    <div class="topbar-left">
       <button class="btn-toggle-sidebar" id="btnToggleSidebar" title="Ẩn/hiện menu">
         <i class="bi bi-list" id="iconToggle"></i>
       </button>
       <h6 class="mb-0 fw-semibold">{% block page_title %}{% endblock %}</h6>
     </div>
-    <div class="d-flex align-items-center gap-3">
+    <div class="topbar-actions">
       {% block topbar_actions %}{% endblock %}
       {% if user %}
       <span class="text-muted" style="font-size:.82rem;"><i class="bi bi-person-circle me-1"></i>{{ user.id }}</span>
@@ -140,51 +97,20 @@
 
   {% with messages = get_flashed_messages(with_categories=true) if get_flashed_messages is defined else [] %}
     {% for cat, msg in messages %}
-    <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+    <div class="alert alert-{{ cat }} alert-dismissible fade show mx-3" role="alert">
       {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     {% endfor %}
   {% endwith %}
 
-  {% block content %}{% endblock %}
+  <div class="page-body">
+    {% block content %}{% endblock %}
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-<script>
-(function () {
-  const sidebar     = document.getElementById('sidebar');
-  const mainContent = document.getElementById('mainContent');
-  const btn         = document.getElementById('btnToggleSidebar');
-  const icon        = document.getElementById('iconToggle');
-  const KEY         = 'sidebar_hidden';
-
-  function applyState(hidden, animate) {
-    if (!animate) {
-      sidebar.style.transition     = 'none';
-      mainContent.style.transition = 'none';
-    }
-    sidebar.classList.toggle('hidden', hidden);
-    mainContent.classList.toggle('expanded', hidden);
-    icon.className = hidden ? 'bi bi-layout-sidebar' : 'bi bi-list';
-    btn.title = hidden ? 'Hiện menu' : 'Ẩn menu';
-    if (!animate) {
-      // Restore transition after paint
-      requestAnimationFrame(() => {
-        sidebar.style.transition     = '';
-        mainContent.style.transition = '';
-      });
-    }
-    localStorage.setItem(KEY, hidden ? '1' : '0');
-  }
-
-  // Khôi phục trạng thái đã lưu (không animation để tránh nhấp nháy)
-  applyState(localStorage.getItem(KEY) === '1', false);
-
-  btn.addEventListener('click', function () {
-    applyState(!sidebar.classList.contains('hidden'), true);
-  });
-})();
-</script>
+<script src="/static/js/app.js" defer></script>
 {% block extra_scripts %}{% endblock %}
+{% block extra_js %}{% endblock %}
 </body>
 </html>

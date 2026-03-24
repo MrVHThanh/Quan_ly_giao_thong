@@ -5,58 +5,64 @@
 {% block content %}
 <div id="dashboard-content">
   <div class="row g-3 mb-4" id="stat-cards">
-    <div class="col-md-3"><div class="card stat-card blue p-3">
-      <div class="text-muted mb-1" style="font-size:.75rem;">TỔNG TUYẾN ĐƯỜNG</div>
-      <div class="fs-3 fw-bold text-primary" id="stat-tuyen">—</div>
+    <div class="col-md-3"><div class="stat-card">
+      <div class="stat-card-label">TỔNG TUYẾN ĐƯỜNG</div>
+      <div class="stat-card-value" id="stat-tuyen">—</div>
     </div></div>
-    <div class="col-md-3"><div class="card stat-card green p-3">
-      <div class="text-muted mb-1" style="font-size:.75rem;">CHIỀU DÀI QUẢN LÝ (KM)</div>
-      <div class="fs-3 fw-bold text-success" id="stat-ql">—</div>
+    <div class="col-md-3"><div class="stat-card">
+      <div class="stat-card-label">CHIỀU DÀI QUẢN LÝ (KM)</div>
+      <div class="stat-card-value" id="stat-ql">—</div>
     </div></div>
-    <div class="col-md-3"><div class="card stat-card orange p-3">
-      <div class="text-muted mb-1" style="font-size:.75rem;">TỔNG ĐOẠN TUYẾN</div>
-      <div class="fs-3 fw-bold text-warning" id="stat-doan">—</div>
+    <div class="col-md-3"><div class="stat-card">
+      <div class="stat-card-label">TỔNG ĐOẠN TUYẾN</div>
+      <div class="stat-card-value" id="stat-doan">—</div>
     </div></div>
-    <div class="col-md-3"><div class="card stat-card purple p-3">
-      <div class="text-muted mb-1" style="font-size:.75rem;">ĐOẠN ĐI CHUNG</div>
-      <div class="fs-3 fw-bold text-purple" id="stat-ddc" style="color:#6f42c1">—</div>
+    <div class="col-md-3"><div class="stat-card">
+      <div class="stat-card-label">ĐOẠN ĐI CHUNG</div>
+      <div class="stat-card-value" id="stat-ddc">—</div>
     </div></div>
   </div>
 
   <div class="row g-3">
     <!-- Theo cấp quản lý -->
     <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-header bg-white fw-semibold py-2">Theo cấp quản lý</div>
-        <div class="card-body p-0">
-          <table class="table table-sm table-hover mb-0" id="tbl-cap">
+      <div class="card-gt h-100">
+        <div class="card-gt-header fw-semibold">Theo cấp quản lý</div>
+        <div class="card-gt-body p-0">
+          <div class="table-responsive-gt">
+          <table class="table-gt mb-0" id="tbl-cap">
             <thead><tr><th>Cấp</th><th class="text-end">Số tuyến</th><th class="text-end">Dài (km)</th></tr></thead>
             <tbody></tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>
     <!-- Theo tình trạng -->
     <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-header bg-white fw-semibold py-2">Theo tình trạng mặt đường</div>
-        <div class="card-body p-0">
-          <table class="table table-sm table-hover mb-0" id="tbl-tt">
+      <div class="card-gt h-100">
+        <div class="card-gt-header fw-semibold">Theo tình trạng mặt đường</div>
+        <div class="card-gt-body p-0">
+          <div class="table-responsive-gt">
+          <table class="table-gt mb-0" id="tbl-tt">
             <thead><tr><th>Tình trạng</th><th class="text-end">Đoạn</th><th class="text-end">Dài (km)</th></tr></thead>
             <tbody></tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>
     <!-- Theo kết cấu mặt -->
     <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-header bg-white fw-semibold py-2">Theo kết cấu mặt đường</div>
-        <div class="card-body p-0">
-          <table class="table table-sm table-hover mb-0" id="tbl-kcm">
+      <div class="card-gt h-100">
+        <div class="card-gt-header fw-semibold">Theo kết cấu mặt đường</div>
+        <div class="card-gt-body p-0">
+          <div class="table-responsive-gt">
+          <table class="table-gt mb-0" id="tbl-kcm">
             <thead><tr><th>Kết cấu</th><th class="text-end">Đoạn</th><th class="text-end">Dài (km)</th></tr></thead>
             <tbody></tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>
@@ -78,7 +84,7 @@ fetch('/thong-ke/api/toan-tinh')
     const tbCap = document.querySelector('#tbl-cap tbody');
     (d.theo_cap_quan_ly || []).forEach(r => {
       tbCap.innerHTML += `<tr>
-        <td><span class="badge bg-secondary badge-cap">${r.ma_cap}</span> ${r.ten_cap}</td>
+        <td><span class="badge-cap-ql badge-cap-${r.ma_cap}">${r.ma_cap}</span> ${r.ten_cap}</td>
         <td class="text-end">${r.so_tuyen ?? 0}</td>
         <td class="text-end">${(r.chieu_dai_quan_ly ?? 0).toFixed(2)}</td></tr>`;
     });

@@ -4,7 +4,7 @@
 
 {% block topbar_actions %}
 {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
-<a href="/doan-di-chung/them" class="btn btn-sm btn-primary">
+<a href="/doan-di-chung/them" class="btn-gt btn-gt-primary btn-gt-sm">
   <i class="bi bi-plus-lg me-1"></i>Thêm đoạn dùng chung
 </a>
 {% endif %}
@@ -12,8 +12,8 @@
 
 {% block content %}
 <!-- Bộ lọc -->
-<div class="card mb-3">
-  <div class="card-body py-2">
+<div class="card-gt mb-3">
+  <div class="card-gt-body py-2">
     <form method="get" class="row g-2 align-items-end">
       <div class="col-auto">
         <label class="form-label mb-1 small">Tuyến đi nhờ</label>
@@ -38,15 +38,15 @@
         </select>
       </div>
       <div class="col-auto">
-        <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
-        <a href="/doan-di-chung/" class="btn btn-sm btn-outline-secondary">Xóa lọc</a>
+        <button type="submit" class="btn-gt btn-gt-outline btn-gt-sm">Lọc</button>
+        <a href="/doan-di-chung/" class="btn-gt btn-gt-outline btn-gt-sm">Xóa lọc</a>
       </div>
     </form>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+<div class="card-gt">
+  <div class="card-gt-header py-2 d-flex justify-content-between align-items-center">
     <span class="small text-muted">{{ ddc_list|length }} đoạn dùng chung</span>
     {% set tong = namespace(val=0) %}
     {% for d in ddc_list %}
@@ -58,8 +58,8 @@
     <span class="small text-muted">Tổng chiều dài đi nhờ: <strong>{{ "%.3f"|format(tong.val) }} km</strong></span>
     {% endif %}
   </div>
-  <div class="card-body p-0">
-    <table class="table table-sm table-hover mb-0">
+  <div class="card-gt-body p-0">
+    <table class="table-gt mb-0">
       <thead class="table-light">
         <tr>
           <th>Mã DDC</th>
@@ -105,17 +105,17 @@
             {% else %}<span class="text-muted">id={{ d.doan_id }}</span>{% endif %}
           </td>
 
-          <td class="text-muted small text-nowrap">
+          <td class="text-muted small text-nowrap ly-trinh">
             {{ d.ly_trinh_dau_di_chung | format_ly_trinh }}–{{ d.ly_trinh_cuoi_di_chung | format_ly_trinh }}
           </td>
 
-          <td class="text-muted small text-nowrap">
+          <td class="text-muted small text-nowrap ly-trinh">
             {% if d.ly_trinh_dau_tuyen_chinh is not none and d.ly_trinh_cuoi_tuyen_chinh is not none %}
               {{ d.ly_trinh_dau_tuyen_chinh | format_ly_trinh }}–{{ d.ly_trinh_cuoi_tuyen_chinh | format_ly_trinh }}
             {% else %}—{% endif %}
           </td>
 
-          <td class="text-end">
+          <td class="text-end chieu-dai">
             {% if d.chieu_dai_di_chung is not none %}
               {{ "%.3f"|format(d.chieu_dai_di_chung) }}
             {% else %}—{% endif %}
@@ -126,13 +126,13 @@
           <td class="text-nowrap">
             {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
             <a href="/doan-di-chung/{{ d.id }}/sua"
-               class="btn btn-xs btn-outline-secondary py-0 px-2"
+               class="btn-gt btn-gt-outline btn-gt-sm py-0 px-2"
                style="font-size:.73rem;">Sửa</a>
             {% endif %}
             {% if user and user.loai_quyen == 'ADMIN' %}
             <form method="post" action="/doan-di-chung/{{ d.id }}/xoa" class="d-inline"
                   onsubmit="return confirm('Xóa đoạn dùng chung {{ d.ma_doan_di_chung }}?')">
-              <button type="submit" class="btn btn-xs btn-outline-danger py-0 px-2"
+              <button type="submit" class="btn-gt btn-gt-danger btn-gt-sm py-0 px-2"
                       style="font-size:.73rem;">Xóa</button>
             </form>
             {% endif %}

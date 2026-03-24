@@ -4,35 +4,36 @@
 
 {% block content %}
 <div class="row g-3 mb-4">
-  <div class="col-md-3"><div class="card stat-card blue p-3">
-    <div class="text-muted mb-1" style="font-size:.75rem;">TỔNG TUYẾN</div>
-    <div class="fs-3 fw-bold text-primary">{{ toan_tinh.tong_so_tuyen }}</div>
+  <div class="col-md-3"><div class="stat-card">
+    <div class="stat-card-label">TỔNG TUYẾN</div>
+    <div class="stat-card-value">{{ toan_tinh.tong_so_tuyen }}</div>
   </div></div>
-  <div class="col-md-3"><div class="card stat-card green p-3">
-    <div class="text-muted mb-1" style="font-size:.75rem;">CHIỀU DÀI QL (KM)</div>
-    <div class="fs-3 fw-bold text-success">{{ "%.2f"|format(toan_tinh.tong_chieu_dai_quan_ly or 0) }}</div>
+  <div class="col-md-3"><div class="stat-card">
+    <div class="stat-card-label">CHIỀU DÀI QL (KM)</div>
+    <div class="stat-card-value">{{ "%.2f"|format(toan_tinh.tong_chieu_dai_quan_ly or 0) }}</div>
   </div></div>
-  <div class="col-md-3"><div class="card stat-card orange p-3">
-    <div class="text-muted mb-1" style="font-size:.75rem;">CHIỀU DÀI TT (KM)</div>
-    <div class="fs-3 fw-bold text-warning">{{ "%.2f"|format(toan_tinh.tong_chieu_dai_thuc_te or 0) }}</div>
+  <div class="col-md-3"><div class="stat-card">
+    <div class="stat-card-label">CHIỀU DÀI TT (KM)</div>
+    <div class="stat-card-value">{{ "%.2f"|format(toan_tinh.tong_chieu_dai_thuc_te or 0) }}</div>
   </div></div>
-  <div class="col-md-3"><div class="card stat-card purple p-3">
-    <div class="text-muted mb-1" style="font-size:.75rem;">ĐOẠN ĐI CHUNG (KM)</div>
-    <div class="fs-3 fw-bold" style="color:#6f42c1">{{ "%.3f"|format(toan_tinh.tong_chieu_dai_di_chung or 0) }}</div>
+  <div class="col-md-3"><div class="stat-card">
+    <div class="stat-card-label">ĐOẠN ĐI CHUNG (KM)</div>
+    <div class="stat-card-value">{{ "%.3f"|format(toan_tinh.tong_chieu_dai_di_chung or 0) }}</div>
   </div></div>
 </div>
 
 <div class="row g-3">
   <div class="col-md-6">
-    <div class="card">
-      <div class="card-header bg-white fw-semibold py-2">Theo cấp quản lý</div>
-      <div class="card-body p-0">
-        <table class="table table-sm table-hover mb-0">
+    <div class="card-gt">
+      <div class="card-gt-header fw-semibold">Theo cấp quản lý</div>
+      <div class="card-gt-body p-0">
+        <div class="table-responsive-gt">
+        <table class="table-gt mb-0">
           <thead class="table-light"><tr><th>Cấp</th><th class="text-end">Tuyến</th><th class="text-end">CD QL (km)</th><th class="text-end">CD TT (km)</th></tr></thead>
           <tbody>
             {% for r in toan_tinh.theo_cap_quan_ly %}
             <tr>
-              <td><span class="badge bg-secondary me-1">{{ r.ma_cap }}</span>{{ r.ten_cap }}</td>
+              <td><span class="badge-cap-ql badge-cap-{{ r.ma_cap }} me-1">{{ r.ma_cap }}</span>{{ r.ten_cap }}</td>
               <td class="text-end">{{ r.so_tuyen or 0 }}</td>
               <td class="text-end">{{ "%.2f"|format(r.chieu_dai_quan_ly or 0) }}</td>
               <td class="text-end">{{ "%.2f"|format(r.chieu_dai_thuc_te or 0) }}</td>
@@ -40,14 +41,16 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>
   <div class="col-md-6">
-    <div class="card">
-      <div class="card-header bg-white fw-semibold py-2">Theo kết cấu mặt đường</div>
-      <div class="card-body p-0">
-        <table class="table table-sm table-hover mb-0">
+    <div class="card-gt">
+      <div class="card-gt-header fw-semibold">Theo kết cấu mặt đường</div>
+      <div class="card-gt-body p-0">
+        <div class="table-responsive-gt">
+        <table class="table-gt mb-0">
           <thead class="table-light"><tr><th>Kết cấu</th><th class="text-end">Đoạn</th><th class="text-end">Dài (km)</th></tr></thead>
           <tbody>
             {% for r in toan_tinh.theo_ket_cau_mat if r.tong_chieu_dai %}
@@ -59,14 +62,16 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>
   <div class="col-md-6">
-    <div class="card">
-      <div class="card-header bg-white fw-semibold py-2">Theo tình trạng mặt đường</div>
-      <div class="card-body p-0">
-        <table class="table table-sm table-hover mb-0">
+    <div class="card-gt">
+      <div class="card-gt-header fw-semibold">Theo tình trạng mặt đường</div>
+      <div class="card-gt-body p-0">
+        <div class="table-responsive-gt">
+        <table class="table-gt mb-0">
           <thead class="table-light"><tr><th>Tình trạng</th><th class="text-end">Đoạn</th><th class="text-end">Dài (km)</th></tr></thead>
           <tbody>
             {% for r in toan_tinh.theo_tinh_trang if r.tong_chieu_dai %}
@@ -78,14 +83,16 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>
   <div class="col-md-6">
-    <div class="card">
-      <div class="card-header bg-white fw-semibold py-2">Theo cấp đường kỹ thuật</div>
-      <div class="card-body p-0">
-        <table class="table table-sm table-hover mb-0">
+    <div class="card-gt">
+      <div class="card-gt-header fw-semibold">Theo cấp đường kỹ thuật</div>
+      <div class="card-gt-body p-0">
+        <div class="table-responsive-gt">
+        <table class="table-gt mb-0">
           <thead class="table-light"><tr><th>Cấp đường</th><th class="text-end">Đoạn</th><th class="text-end">Dài (km)</th></tr></thead>
           <tbody>
             {% for r in toan_tinh.theo_cap_duong if r.tong_chieu_dai %}
@@ -97,6 +104,7 @@
             {% endfor %}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>

@@ -331,4 +331,48 @@ DB_PATH=database/giao_thong.db
 
 ---
 
-*Cập nhật file này sau mỗi thay đổi kiến trúc lớn hoặc thêm quy tắc mới.*
+## 10. PROMPTS SẴN CÓ — GỌI BẰNG `@` TRONG CLAUDE CODE
+
+Thư mục `prompts/` chứa các file prompt viết sẵn cho từng tác vụ lớn.
+Gọi trực tiếp trong cửa sổ chat của Claude Code bằng cú pháp `@prompts/ten_file.md`.
+
+### Danh sách prompts hiện có
+
+| File | Mô tả | Khi nào dùng |
+|---|---|---|
+| `prompts/chuan_hoa_css_ui.md` | Chuẩn hóa toàn bộ giao diện: CSS Design System, layout, responsive, hover effects, animations | Khi muốn làm mới hoặc đồng bộ UI toàn dự án |
+
+### Cách gọi trong Claude Code (VSCode)
+
+**Thực thi toàn bộ prompt một lần:**
+```
+@prompts/chuan_hoa_css_ui.md
+```
+
+**Chỉ làm một phần cụ thể:**
+```
+@prompts/chuan_hoa_css_ui.md chỉ thực hiện Phần 1 (khảo sát) và Phần 2 (Design System), báo cáo kết quả rồi dừng
+```
+
+**Tập trung vào một nhóm file:**
+```
+@prompts/chuan_hoa_css_ui.md chỉ cập nhật templates/tuyen_duong/ trước
+```
+
+### Cấu trúc thư mục `prompts/`
+
+```
+prompts/
+├── chuan_hoa_css_ui.md        ✅ Sẵn sàng — UI/CSS Design System toàn dự án
+├── them_tinh_nang_moi.md      (tương lai) Hướng dẫn thêm tính năng CRUD hoàn chỉnh
+├── migrate_database.md        (tương lai) Hướng dẫn thêm cột / migration DB
+└── deploy_production.md       (tương lai) Hướng dẫn deploy lên VPS Ubuntu + Nginx
+```
+
+> **Quan trọng:** File prompt phải nằm trong thư mục `prompts/` tại thư mục gốc
+> `D:\Dropbox\@Giaothong2\prompts\`. Claude Code tìm file theo đường dẫn tương đối
+> so với thư mục workspace đang mở trong VSCode.
+
+---
+
+*Cập nhật file này sau mỗi thay đổi kiến trúc lớn, thêm quy tắc mới, hoặc thêm prompt mới.*

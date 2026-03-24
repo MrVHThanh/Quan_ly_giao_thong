@@ -2,9 +2,9 @@
 {% block title %}Duyệt tài khoản{% endblock %}
 {% block page_title %}Tài khoản chờ duyệt{% endblock %}
 {% block content %}
-<div class="card">
-<div class="card-body p-0">
-<table class="table table-sm table-hover mb-0">
+<div class="card-gt">
+<div class="card-gt-body p-0">
+<table class="table-gt mb-0">
 <thead class="table-light"><tr><th>Tên đăng nhập</th><th>Họ tên</th><th>Chức vụ</th><th>Ngày đăng ký</th><th>Phân quyền</th><th></th></tr></thead>
 <tbody>
 {% for u in danh_sach %}
@@ -20,7 +20,7 @@
         <option value="BIEN_TAP" selected>BIEN_TAP</option>
         <option value="ADMIN">ADMIN</option>
       </select>
-      <button type="submit" class="btn btn-sm btn-success py-0 px-2">Duyệt</button>
+      <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm py-0 px-2">Duyệt</button>
     </form>
   </td>
 </tr>

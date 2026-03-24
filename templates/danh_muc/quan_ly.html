@@ -19,17 +19,17 @@
 <!-- ══════════════════════════════════════════════════════
      PHẦN 1: CẤP QUẢN LÝ
 ═══════════════════════════════════════════════════════ -->
-<div class="card mb-4">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+<div class="card-gt mb-4">
+  <div class="card-gt-header d-flex justify-content-between align-items-center py-2">
     <span class="fw-semibold"><i class="bi bi-shield-fill me-2 text-primary"></i>Cấp quản lý đường</span>
     {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
-    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalThemCQL">
+    <button class="btn-gt btn-gt-primary btn-gt-sm" data-bs-toggle="modal" data-bs-target="#modalThemCQL">
       <i class="bi bi-plus-lg me-1"></i>Thêm mới
     </button>
     {% endif %}
   </div>
-  <div class="card-body p-0">
-    <table class="table table-sm table-hover mb-0">
+  <div class="card-gt-body p-0">
+    <table class="table-gt mb-0">
       <thead class="table-light">
         <tr>
           <th style="width:60px">#</th>
@@ -58,7 +58,7 @@
           </td>
           <td class="text-end">
             {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
-            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;"
+            <button class="btn-gt btn-gt-outline btn-gt-sm py-0 px-2" style="font-size:.73rem;"
               onclick="moModalSuaCQL({{ c.id }}, '{{ c.ma_cap }}', '{{ c.ten_cap|replace("'","\\'")|replace('"','\\"') }}', '{{ c.mo_ta or '' }}', '{{ c.thu_tu_hien_thi or '' }}')">
               Sửa
             </button>
@@ -85,17 +85,17 @@
 <!-- ══════════════════════════════════════════════════════
      PHẦN 2: ĐƠN VỊ
 ═══════════════════════════════════════════════════════ -->
-<div class="card mb-4">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+<div class="card-gt mb-4">
+  <div class="card-gt-header d-flex justify-content-between align-items-center py-2">
     <span class="fw-semibold"><i class="bi bi-building me-2 text-success"></i>Đơn vị quản lý</span>
     {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
-    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalThemDV">
+    <button class="btn-gt btn-gt-primary btn-gt-sm" data-bs-toggle="modal" data-bs-target="#modalThemDV">
       <i class="bi bi-plus-lg me-1"></i>Thêm mới
     </button>
     {% endif %}
   </div>
-  <div class="card-body p-0">
-    <table class="table table-sm table-hover mb-0">
+  <div class="card-gt-body p-0">
+    <table class="table-gt mb-0">
       <thead class="table-light">
         <tr>
           <th style="width:60px">#</th>
@@ -131,7 +131,7 @@
           </td>
           <td class="text-end">
             {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
-            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;"
+            <button class="btn-gt btn-gt-outline btn-gt-sm py-0 px-2" style="font-size:.73rem;"
               data-bs-toggle="modal" data-bs-target="#modalSuaDV"
               onclick="moModalSuaDV({{ d.id }},
                 '{{ d.ten_don_vi|replace("'","\\'")|replace('"','\\"') }}',
@@ -199,7 +199,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm</button>
+          <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm"><i class="bi bi-plus-lg me-1"></i>Thêm</button>
         </div>
       </form>
     </div>
@@ -233,7 +233,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-floppy me-1"></i>Lưu</button>
+          <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm"><i class="bi bi-floppy me-1"></i>Lưu</button>
         </div>
       </form>
     </div>
@@ -299,7 +299,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm</button>
+          <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm"><i class="bi bi-plus-lg me-1"></i>Thêm</button>
         </div>
       </form>
     </div>
@@ -356,7 +356,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-floppy me-1"></i>Lưu</button>
+          <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm"><i class="bi bi-floppy me-1"></i>Lưu</button>
         </div>
       </form>
     </div>

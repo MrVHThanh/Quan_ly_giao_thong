@@ -3,10 +3,10 @@
 {% block page_title %}Đoạn: {{ doan.ma_doan }}{% endblock %}
 
 {% block topbar_actions %}
-<a href="/doan-tuyen/{{ doan.id }}/sua" class="btn btn-sm btn-outline-primary">
+<a href="/doan-tuyen/{{ doan.id }}/sua" class="btn-gt btn-gt-outline btn-gt-sm">
   <i class="bi bi-pencil me-1"></i>Sửa
 </a>
-<a href="/tuyen-duong/{{ doan.tuyen_id }}" class="btn btn-sm btn-outline-secondary">
+<a href="/tuyen-duong/{{ doan.tuyen_id }}" class="btn-gt btn-gt-outline btn-gt-sm">
   <i class="bi bi-arrow-up me-1"></i>Về tuyến
 </a>
 {% endblock %}
@@ -14,12 +14,12 @@
 {% block content %}
 <div class="row g-3">
   <div class="col-md-6">
-    <div class="card">
-      <div class="card-header bg-white py-2 fw-semibold small">Thông tin đoạn</div>
-      <div class="card-body">
-        <table class="table table-sm mb-0">
-          <tr><td class="text-muted">Lý trình</td><td>{{ doan.ly_trinh_dau }} – {{ doan.ly_trinh_cuoi }} km</td></tr>
-          <tr><td class="text-muted">Chiều dài</td><td class="fw-semibold">{{ "%.3f"|format(doan.chieu_dai or 0) }} km</td></tr>
+    <div class="card-gt">
+      <div class="card-gt-header py-2 fw-semibold small">Thông tin đoạn</div>
+      <div class="card-gt-body">
+        <table class="table-gt mb-0">
+          <tr><td class="text-muted">Lý trình</td><td class="ly-trinh">{{ doan.ly_trinh_dau }} – {{ doan.ly_trinh_cuoi }} km</td></tr>
+          <tr><td class="text-muted">Chiều dài</td><td class="fw-semibold chieu-dai">{{ "%.3f"|format(doan.chieu_dai or 0) }} km</td></tr>
           <tr><td class="text-muted">Cấp đường</td><td>{{ doan.cap_duong_id or '—' }}</td></tr>
           <tr><td class="text-muted">Tình trạng</td><td>{{ doan.tinh_trang_id or '—' }}</td></tr>
           <tr><td class="text-muted">Kết cấu mặt</td><td>{{ doan.ket_cau_mat_id or '—' }}</td></tr>
@@ -32,9 +32,9 @@
     </div>
   </div>
   <div class="col-md-6">
-    <div class="card">
-      <div class="card-header bg-white py-2 fw-semibold small">Cập nhật nhanh tình trạng</div>
-      <div class="card-body">
+    <div class="card-gt">
+      <div class="card-gt-header py-2 fw-semibold small">Cập nhật nhanh tình trạng</div>
+      <div class="card-gt-body">
         <form method="post" action="/doan-tuyen/{{ doan.id }}/cap-nhat-tinh-trang">
           <div class="mb-2">
             <label class="form-label small">Tình trạng mới</label>
@@ -50,7 +50,7 @@
             <label class="form-label small">Ngày khảo sát</label>
             <input type="date" name="ngay_cap_nhat" class="form-control form-control-sm" required>
           </div>
-          <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
+          <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm">Cập nhật</button>
         </form>
       </div>
     </div>

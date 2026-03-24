@@ -5,8 +5,8 @@
 {% block content %}
 {% if loi %}<div class="alert alert-danger">{{ loi }}</div>{% endif %}
 
-<div class="card" style="max-width:760px">
-  <div class="card-body">
+<div class="card-gt" style="max-width:760px">
+  <div class="card-gt-body">
     <form method="post" action="{% if doan %}/doan-tuyen/{{ doan.id }}/sua{% else %}/doan-tuyen/them{% endif %}">
       <div class="row g-3">
         {% if not doan %}
@@ -89,13 +89,13 @@
           <textarea name="ghi_chu" class="form-control form-control-sm" rows="2">{{ doan.ghi_chu if doan else '' }}</textarea></div>
 
         <div class="col-12 d-flex gap-2">
-          <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+          <button type="submit" class="btn-gt btn-gt-primary btn-gt-sm">Lưu</button>
           <a href="{% if doan %}/doan-tuyen/{{ doan.id }}{% else %}/doan-tuyen/{% endif %}"
-             class="btn btn-sm btn-outline-secondary">Hủy</a>
+             class="btn-gt btn-gt-outline btn-gt-sm">Hủy</a>
           {% if doan %}
           <form method="post" action="/doan-tuyen/{{ doan.id }}/xoa" class="ms-auto"
                 onsubmit="return confirm('Xóa đoạn {{ doan.ma_doan }}?')">
-            <button type="submit" class="btn btn-sm btn-outline-danger">Xóa đoạn</button>
+            <button type="submit" class="btn-gt btn-gt-danger btn-gt-sm">Xóa đoạn</button>
           </form>
           {% endif %}
         </div>
