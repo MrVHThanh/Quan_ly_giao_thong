@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}Thêm đoạn dùng chung{% endblock %}
+{% block page_title %}Thêm đoạn dùng chung{% endblock %}
+
+{% block topbar_actions %}
+<a href="/doan-di-chung/" class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+</a>
+{% endblock %}
+
+{% block content %}
+{% if loi %}
+<div class="alert alert-danger">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ loi }}
+</div>
+{% endif %}
+
+<form method="post" action="/doan-di-chung/them">
+<div class="row g-3">
+
+  <!-- Cột trái: Form nhập liệu -->
+  <div class="col-lg-7">
+
+    <!-- Card 1: Tuyến & Đoạn vật lý -->
+    <div class="card mb-3">
+      <div class="card-header bg-white fw-semibold small">
+        <i class="bi bi-signpost-2 me-2 text-primary"></i>Tuyến và đoạn vật lý
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Tuyến đi nhờ <span class="text-danger">*</span></label>
+          <select name="tuyen_di_chung_id" class="form-select form-select-sm" required id="sel_tuyen_di_chung">
+            <option value="">-- Chọn tuyến đi nhờ --</option>
+            {% for t in tuyen_list %}
+            <option value="{{ t.id }}"
+              {% if form.tuyen_di_chung_id == t.id %}selected{% endif %}>
+              {{ t.ma_tuyen }} — {{ t.ten_tuyen }}
+            </option>
+            {% endfor %}
+          </select>
+          <div class="form-text">Tuyến sẽ đi nhờ vật lý của tuyến khác</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Tuyến chủ (sở hữu đoạn vật lý) <span class="text-danger">*</span></label>
+          <select name="tuyen_chinh_id" class="form-select form-select-sm" required id="sel_tuyen_chinh">
+            <option value="">-- Chọn tuyến chủ --</option>
+            {% for t in tuyen_list %}
+            <option value="{{ t.id }}"
+              {% if form.tuyen_chinh_id == t.id %}selected{% endif %}>
+              {{ t.ma_tuyen }} — {{ t.ten_tuyen }}
+            </option>
+            {% endfor %}
+          </select>
+          <div class="form-text">Tuyến sở hữu đoạn vật lý được sử dụng chung</div>
+        </div>
+
+        <div class="mb-0">
+          <label class="form-label small fw-semibold">Đoạn vật lý <span class="text-danger">*</span></label>
+          <select name="doan_id" class="form-select form-select-sm" required id="sel_doan">
+            <option value="">-- Chọn tuyến chủ trước --</option>
+            {% for d in doan_list %}
+            <option value="{{ d.id }}"
+                    data-tuyen="{{ d.tuyen_id }}"
+                    data-lt-dau="{{ d.ly_trinh_dau }}"
+                    data-lt-cuoi="{{ d.ly_trinh_cuoi }}"
+                    {% if form.doan_id == d.id %}selected{% endif %}
+                    style="display:none">
+              {{ d.ma_doan }}
+              {% if d.ly_trinh_dau is not none and d.ly_trinh_cuoi is not none %}
+                ({{ d.ly_trinh_dau | format_ly_trinh }}–{{ d.ly_trinh_cuoi | format_ly_trinh }})
+              {% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <div class="form-text" id="doan_hint">Chọn tuyến chủ để lọc danh sách đoạn</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Lý trình theo tuyến đi nhờ -->
+    <div class="card mb-3">
+      <div class="card-header bg-white fw-semibold small">
+        <i class="bi bi-arrow-left-right me-2 text-warning"></i>Lý trình theo tuyến đi nhờ
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Lý trình đầu (km) <span class="text-danger">*</span></label>
+            <input type="number" name="ly_trinh_dau_di_chung" class="form-control form-control-sm"
+                   step="0.001" min="0" required
+                   value="{{ form.ly_trinh_dau_di_chung or '' }}"
+                   placeholder="VD: 37.557">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Lý trình cuối (km) <span class="text-danger">*</span></label>
+            <input type="number" name="ly_trinh_cuoi_di_chung" class="form-control form-control-sm"
+                   step="0.001" min="0" required
+                   value="{{ form.ly_trinh_cuoi_di_chung or '' }}"
+                   placeholder="VD: 42.100">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Lý trình theo tuyến chủ -->
+    <div class="card mb-3">
+      <div class="card-header bg-white fw-semibold small">
+        <i class="bi bi-arrow-left-right me-2 text-secondary"></i>Lý trình theo tuyến chủ
+        <span class="text-muted fw-normal">(tuỳ chọn)</span>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label small">Lý trình đầu (km)</label>
+            <input type="number" name="ly_trinh_dau_tuyen_chinh" class="form-control form-control-sm"
+                   step="0.001" min="0" id="lt_dau_chinh"
+                   value="{{ form.ly_trinh_dau_tuyen_chinh or '' }}"
+                   placeholder="Để trống nếu không có">
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Lý trình cuối (km)</label>
+            <input type="number" name="ly_trinh_cuoi_tuyen_chinh" class="form-control form-control-sm"
+                   step="0.001" min="0" id="lt_cuoi_chinh"
+                   value="{{ form.ly_trinh_cuoi_tuyen_chinh or '' }}"
+                   placeholder="Để trống nếu không có">
+          </div>
+        </div>
+        <div class="form-text mt-2" id="pham_vi_hint"></div>
+      </div>
+    </div>
+
+    <!-- Card 4: Ghi chú -->
+    <div class="card mb-3">
+      <div class="card-header bg-white fw-semibold small">
+        <i class="bi bi-chat-left-text me-2 text-secondary"></i>Ghi chú
+      </div>
+      <div class="card-body">
+        <textarea name="ghi_chu" class="form-control form-control-sm" rows="3"
+                  placeholder="Ghi chú thêm (không bắt buộc)">{{ form.ghi_chu or '' }}</textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Cột phải: Hướng dẫn & Nút lệnh -->
+  <div class="col-lg-5">
+    <div class="card mb-3 border-info">
+      <div class="card-header bg-info bg-opacity-10 small fw-semibold text-info">
+        <i class="bi bi-info-circle me-2"></i>Hướng dẫn
+      </div>
+      <div class="card-body small">
+        <ol class="ps-3 mb-0">
+          <li class="mb-2">Chọn <strong>tuyến đi nhờ</strong> — tuyến sẽ sử dụng đoạn vật lý của tuyến khác.</li>
+          <li class="mb-2">Chọn <strong>tuyến chủ</strong> — tuyến sở hữu đoạn đường đó.</li>
+          <li class="mb-2">Chọn <strong>đoạn vật lý</strong> từ danh sách (lọc theo tuyến chủ).</li>
+          <li class="mb-2">Nhập <strong>lý trình theo tuyến đi nhờ</strong> (bắt buộc).</li>
+          <li class="mb-0">Nhập <strong>lý trình theo tuyến chủ</strong> nếu biết (không bắt buộc — hệ thống sẽ dùng lý trình đi nhờ làm mặc định).</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header bg-white small fw-semibold">
+        <i class="bi bi-rulers me-2 text-secondary"></i>Phạm vi đoạn vật lý đã chọn
+      </div>
+      <div class="card-body small" id="doan_info">
+        <span class="text-muted">Chưa chọn đoạn vật lý.</span>
+      </div>
+    </div>
+
+    <!-- Nút lệnh -->
+    <div class="d-grid gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Thêm đoạn dùng chung
+      </button>
+      <a href="/doan-di-chung/" class="btn btn-outline-secondary">
+        <i class="bi bi-x-circle me-1"></i>Hủy
+      </a>
+    </div>
+  </div>
+
+</div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  const selTuyenChinh = document.getElementById('sel_tuyen_chinh');
+  const selDoan       = document.getElementById('sel_doan');
+  const doanHint      = document.getElementById('doan_hint');
+  const doanInfo      = document.getElementById('doan_info');
+  const phamViHint    = document.getElementById('pham_vi_hint');
+
+  function locDoan() {
+    const tuyenId = selTuyenChinh.value;
+    const opts    = selDoan.querySelectorAll('option[data-tuyen]');
+    let visible   = 0;
+
+    opts.forEach(opt => {
+      if (!tuyenId || opt.dataset.tuyen === tuyenId) {
+        opt.style.display = '';
+        visible++;
+      } else {
+        opt.style.display = 'none';
+        if (opt.selected) {
+          opt.selected = false;
+          selDoan.value = '';
+        }
+      }
+    });
+
+    if (!tuyenId) {
+      selDoan.options[0].text = '-- Chọn tuyến chủ trước --';
+      doanHint.textContent = 'Chọn tuyến chủ để lọc danh sách đoạn';
+    } else {
+      selDoan.options[0].text = `-- Chọn đoạn (${visible} đoạn) --`;
+      doanHint.textContent = `Tìm thấy ${visible} đoạn thuộc tuyến chủ này`;
+    }
+    capNhatDoanInfo();
+  }
+
+  function capNhatDoanInfo() {
+    const opt = selDoan.options[selDoan.selectedIndex];
+    if (!opt || !opt.dataset.tuyen) {
+      doanInfo.innerHTML = '<span class="text-muted">Chưa chọn đoạn vật lý.</span>';
+      phamViHint.textContent = '';
+      return;
+    }
+    const ltDau  = opt.dataset.ltDau  || '—';
+    const ltCuoi = opt.dataset.ltCuoi || '—';
+    doanInfo.innerHTML =
+      `<strong>${opt.text.split('(')[0].trim()}</strong><br>` +
+      `Lý trình: <span class="text-primary">${ltDau} – ${ltCuoi}</span> km`;
+    if (ltDau !== '—' && ltCuoi !== '—') {
+      phamViHint.textContent =
+        `Lý trình tuyến chủ phải nằm trong [${ltDau} – ${ltCuoi}]`;
+    }
+  }
+
+  selTuyenChinh.addEventListener('change', locDoan);
+  selDoan.addEventListener('change', capNhatDoanInfo);
+
+  // Khi load lại trang (có form data lỗi) → lọc lại ngay
+  if (selTuyenChinh.value) locDoan();
+})();
+</script>
+{% endblock %}

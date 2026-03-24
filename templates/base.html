@@ -8,13 +8,41 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
   <style>
     body { background:#f4f6f9; font-size:0.9rem; }
-    .sidebar { width:220px; min-height:100vh; background:#1a3a5c; position:fixed; top:0; left:0; z-index:100; }
-    .sidebar .brand { padding:1.2rem 1rem; color:#fff; font-weight:700; font-size:1rem; border-bottom:1px solid rgba(255,255,255,.15); }
-    .sidebar .nav-link { color:rgba(255,255,255,.75); padding:.5rem 1rem; border-radius:6px; margin:2px 8px; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px; min-height: 100vh;
+      background: #1a3a5c;
+      position: fixed; top: 0; left: 0; z-index: 100;
+      transition: left .25s ease, width .25s ease;
+      overflow: hidden;
+    }
+    .sidebar.hidden { left: -220px; }
+    .sidebar .brand { padding:1.2rem 1rem; color:#fff; font-weight:700; font-size:1rem; border-bottom:1px solid rgba(255,255,255,.15); white-space:nowrap; }
+    .sidebar .nav-link { color:rgba(255,255,255,.75); padding:.5rem 1rem; border-radius:6px; margin:2px 8px; white-space:nowrap; }
     .sidebar .nav-link:hover, .sidebar .nav-link.active { background:rgba(255,255,255,.15); color:#fff; }
-    .sidebar .nav-section { color:rgba(255,255,255,.4); font-size:.7rem; text-transform:uppercase; padding:.8rem 1rem .2rem; letter-spacing:.08em; }
-    .main-content { margin-left:220px; padding:1.5rem; }
+    .sidebar .nav-section { color:rgba(255,255,255,.4); font-size:.7rem; text-transform:uppercase; padding:.8rem 1rem .2rem; letter-spacing:.08em; white-space:nowrap; }
+
+    /* ── Main content ── */
+    .main-content {
+      margin-left: 220px;
+      padding: 1.5rem;
+      transition: margin-left .25s ease;
+    }
+    .main-content.expanded { margin-left: 0; }
+
+    /* ── Topbar ── */
     .topbar { background:#fff; padding:.6rem 1.5rem; margin:-1.5rem -1.5rem 1.5rem; border-bottom:1px solid #e0e0e0; display:flex; justify-content:space-between; align-items:center; }
+
+    /* ── Nút toggle sidebar ── */
+    .btn-toggle-sidebar {
+      background: none; border: none; color: #555;
+      padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 1.1rem;
+      transition: background .15s;
+    }
+    .btn-toggle-sidebar:hover { background: #f0f0f0; }
+
+    /* ── Các style khác ── */
     .badge-cap { font-size:.7rem; }
     .table th { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:#666; font-weight:600; }
     .card { border:none; box-shadow:0 1px 4px rgba(0,0,0,.08); }
@@ -29,7 +57,7 @@
 <body>
 
 <!-- Sidebar -->
-<nav class="sidebar d-flex flex-column">
+<nav class="sidebar d-flex flex-column" id="sidebar">
   <div class="brand"><i class="bi bi-signpost-2-fill me-2"></i>Giao thông Lào Cai</div>
   <ul class="nav flex-column mt-2 flex-grow-1">
     <li class="nav-section">Tổng quan</li>
@@ -55,8 +83,23 @@
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link {% if '/doan-tuyen' in request.url.path %}active{% endif %}" href="/doan-tuyen/">
+      <a class="nav-link {% if '/doan-tuyen' in request.url.path and '/doan-di-chung' not in request.url.path %}active{% endif %}" href="/doan-tuyen/">
         <i class="bi bi-diagram-3-fill me-2"></i>Đoạn tuyến
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if '/doan-di-chung' in request.url.path %}active{% endif %}" href="/doan-di-chung/">
+        <i class="bi bi-intersect me-2"></i>Đoạn dùng chung
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if '/danh-muc/quan-ly' in request.url.path %}active{% endif %}" href="/danh-muc/quan-ly">
+        <i class="bi bi-shield-fill me-2"></i>Thông tin quản lý
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if '/danh-muc/ky-thuat' in request.url.path %}active{% endif %}" href="/danh-muc/ky-thuat">
+        <i class="bi bi-tools me-2"></i>Thông tin kỹ thuật
       </a>
     </li>
   </ul>
@@ -71,9 +114,14 @@
 </nav>
 
 <!-- Main -->
-<div class="main-content">
+<div class="main-content" id="mainContent">
   <div class="topbar">
-    <h6 class="mb-0 fw-semibold">{% block page_title %}{% endblock %}</h6>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn-toggle-sidebar" id="btnToggleSidebar" title="Ẩn/hiện menu">
+        <i class="bi bi-list" id="iconToggle"></i>
+      </button>
+      <h6 class="mb-0 fw-semibold">{% block page_title %}{% endblock %}</h6>
+    </div>
     <div class="d-flex align-items-center gap-3">
       {% block topbar_actions %}{% endblock %}
       {% if user %}
@@ -94,6 +142,41 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+  const sidebar     = document.getElementById('sidebar');
+  const mainContent = document.getElementById('mainContent');
+  const btn         = document.getElementById('btnToggleSidebar');
+  const icon        = document.getElementById('iconToggle');
+  const KEY         = 'sidebar_hidden';
+
+  function applyState(hidden, animate) {
+    if (!animate) {
+      sidebar.style.transition     = 'none';
+      mainContent.style.transition = 'none';
+    }
+    sidebar.classList.toggle('hidden', hidden);
+    mainContent.classList.toggle('expanded', hidden);
+    icon.className = hidden ? 'bi bi-layout-sidebar' : 'bi bi-list';
+    btn.title = hidden ? 'Hiện menu' : 'Ẩn menu';
+    if (!animate) {
+      // Restore transition after paint
+      requestAnimationFrame(() => {
+        sidebar.style.transition     = '';
+        mainContent.style.transition = '';
+      });
+    }
+    localStorage.setItem(KEY, hidden ? '1' : '0');
+  }
+
+  // Khôi phục trạng thái đã lưu (không animation để tránh nhấp nháy)
+  applyState(localStorage.getItem(KEY) === '1', false);
+
+  btn.addEventListener('click', function () {
+    applyState(!sidebar.classList.contains('hidden'), true);
+  });
+})();
+</script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

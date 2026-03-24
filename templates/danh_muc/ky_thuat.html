@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+{% block title %}Thông tin kỹ thuật{% endblock %}
+{% block page_title %}Thông tin kỹ thuật{% endblock %}
+
+{% block content %}
+{% if loi %}
+<div class="alert alert-danger alert-dismissible fade show">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ loi }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+{% if ok %}
+<div class="alert alert-success alert-dismissible fade show">
+  <i class="bi bi-check-circle-fill me-2"></i>Đã lưu thành công.
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════════════════
+     PHẦN 1: CẤP ĐƯỜNG KỸ THUẬT
+═══════════════════════════════════════════════════════ -->
+<div class="card mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+    <span class="fw-semibold"><i class="bi bi-layers-fill me-2 text-primary"></i>Cấp đường kỹ thuật</span>
+    {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalThemCD">
+      <i class="bi bi-plus-lg me-1"></i>Thêm mới
+    </button>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:60px">#</th>
+          <th>Mã</th>
+          <th>Tên cấp</th>
+          <th>Mô tả</th>
+          <th style="width:80px" class="text-center">Thứ tự</th>
+          <th style="width:90px" class="text-center">Trạng thái</th>
+          <th style="width:120px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in cap_duong_list %}
+        <tr class="{% if not c.is_active %}table-secondary text-muted{% endif %}">
+          <td class="text-muted small">{{ loop.index }}</td>
+          <td><span class="badge bg-primary">{{ c.ma_cap }}</span></td>
+          <td class="fw-semibold">{{ c.ten_cap }}</td>
+          <td class="small text-muted">{{ c.mo_ta or "—" }}</td>
+          <td class="text-center small">{{ c.thu_tu_hien_thi or "—" }}</td>
+          <td class="text-center">
+            {% if c.is_active %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Vô hiệu</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;"
+              onclick="moModal('modalSuaCD','formSuaCD','/danh-muc/cap-duong/{{ c.id }}/sua',
+                {'lblMaCD':'{{ c.ma_cap }}','suaCDTen':'{{ c.ten_cap|replace("'","\\'")|replace('"','\\"') }}',
+                 'suaCDMoTa':'{{ c.mo_ta or '' }}','suaCDThuTu':'{{ c.thu_tu_hien_thi or '' }}'})">
+              Sửa
+            </button>
+            {% endif %}
+            {% if user and user.loai_quyen == 'ADMIN' %}
+            <form method="post" action="/danh-muc/cap-duong/{{ c.id }}/xoa" class="d-inline"
+                  onsubmit="return confirm('{% if c.is_active %}Vô hiệu hóa{% else %}Khôi phục{% endif %} cấp đường {{ c.ma_cap }}?')">
+              <button type="submit" class="btn btn-xs py-0 px-2 {% if c.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}" style="font-size:.73rem;">
+                {% if c.is_active %}Vô hiệu{% else %}Khôi phục{% endif %}
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-3">Chưa có dữ liệu.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PHẦN 2: KẾT CẤU MẶT ĐƯỜNG
+═══════════════════════════════════════════════════════ -->
+<div class="card mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+    <span class="fw-semibold"><i class="bi bi-grid-3x3-gap-fill me-2 text-warning"></i>Kết cấu mặt đường</span>
+    {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalThemKCM">
+      <i class="bi bi-plus-lg me-1"></i>Thêm mới
+    </button>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:60px">#</th>
+          <th>Mã</th>
+          <th>Tên kết cấu</th>
+          <th>Mô tả</th>
+          <th style="width:80px" class="text-center">Thứ tự</th>
+          <th style="width:90px" class="text-center">Trạng thái</th>
+          <th style="width:120px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for k in ket_cau_list %}
+        <tr class="{% if not k.is_active %}table-secondary text-muted{% endif %}">
+          <td class="text-muted small">{{ loop.index }}</td>
+          <td><span class="badge bg-warning text-dark">{{ k.ma_ket_cau }}</span></td>
+          <td class="fw-semibold">{{ k.ten_ket_cau }}</td>
+          <td class="small text-muted">{{ k.mo_ta or "—" }}</td>
+          <td class="text-center small">{{ k.thu_tu_hien_thi or "—" }}</td>
+          <td class="text-center">
+            {% if k.is_active %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Vô hiệu</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;"
+              onclick="moModal('modalSuaKCM','formSuaKCM','/danh-muc/ket-cau-mat/{{ k.id }}/sua',
+                {'lblMaKCM':'{{ k.ma_ket_cau }}','suaKCMTen':'{{ k.ten_ket_cau|replace("'","\\'")|replace('"','\\"') }}',
+                 'suaKCMMoTa':'{{ k.mo_ta or '' }}','suaKCMThuTu':'{{ k.thu_tu_hien_thi or '' }}'})">
+              Sửa
+            </button>
+            {% endif %}
+            {% if user and user.loai_quyen == 'ADMIN' %}
+            <form method="post" action="/danh-muc/ket-cau-mat/{{ k.id }}/xoa" class="d-inline"
+                  onsubmit="return confirm('{% if k.is_active %}Vô hiệu hóa{% else %}Khôi phục{% endif %} kết cấu {{ k.ma_ket_cau }}?')">
+              <button type="submit" class="btn btn-xs py-0 px-2 {% if k.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}" style="font-size:.73rem;">
+                {% if k.is_active %}Vô hiệu{% else %}Khôi phục{% endif %}
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-3">Chưa có dữ liệu.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PHẦN 3: TÌNH TRẠNG MẶT ĐƯỜNG
+═══════════════════════════════════════════════════════ -->
+<div class="card mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+    <span class="fw-semibold"><i class="bi bi-traffic-cone-fill me-2 text-danger"></i>Tình trạng mặt đường</span>
+    {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalThemTT">
+      <i class="bi bi-plus-lg me-1"></i>Thêm mới
+    </button>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:60px">#</th>
+          <th>Mã</th>
+          <th>Tên tình trạng</th>
+          <th>Màu hiển thị</th>
+          <th>Mô tả</th>
+          <th style="width:80px" class="text-center">Thứ tự</th>
+          <th style="width:90px" class="text-center">Trạng thái</th>
+          <th style="width:120px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tinh_trang_list %}
+        <tr class="{% if not t.is_active %}table-secondary text-muted{% endif %}">
+          <td class="text-muted small">{{ loop.index }}</td>
+          <td>
+            <span class="badge rounded-pill"
+                  style="background-color:{{ t.mau_hien_thi or '#6c757d' }}; font-size:.75rem;">
+              {{ t.ma_tinh_trang }}
+            </span>
+          </td>
+          <td class="fw-semibold">{{ t.ten_tinh_trang }}</td>
+          <td>
+            {% if t.mau_hien_thi %}
+            <span class="d-inline-flex align-items-center gap-2">
+              <span style="width:18px;height:18px;background:{{ t.mau_hien_thi }};border-radius:4px;border:1px solid #dee2e6;display:inline-block;"></span>
+              <code class="small">{{ t.mau_hien_thi }}</code>
+            </span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="small text-muted">{{ t.mo_ta or "—" }}</td>
+          <td class="text-center small">{{ t.thu_tu_hien_thi or "—" }}</td>
+          <td class="text-center">
+            {% if t.is_active %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Vô hiệu</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;"
+              onclick="moModalTT({{ t.id }},
+                '{{ t.ma_tinh_trang }}',
+                '{{ t.ten_tinh_trang|replace("'","\\'")|replace('"','\\"') }}',
+                '{{ t.mau_hien_thi or '' }}',
+                '{{ t.mo_ta or '' }}',
+                '{{ t.thu_tu_hien_thi or '' }}')">
+              Sửa
+            </button>
+            {% endif %}
+            {% if user and user.loai_quyen == 'ADMIN' %}
+            <form method="post" action="/danh-muc/tinh-trang/{{ t.id }}/xoa" class="d-inline"
+                  onsubmit="return confirm('{% if t.is_active %}Vô hiệu hóa{% else %}Khôi phục{% endif %} tình trạng {{ t.ma_tinh_trang }}?')">
+              <button type="submit" class="btn btn-xs py-0 px-2 {% if t.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}" style="font-size:.73rem;">
+                {% if t.is_active %}Vô hiệu{% else %}Khôi phục{% endif %}
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-3">Chưa có dữ liệu.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: THÊM CẤP ĐƯỜNG
+═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalThemCD" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/danh-muc/cap-duong/them">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-plus-circle me-2"></i>Thêm cấp đường kỹ thuật</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Mã cấp <span class="text-danger">*</span></label>
+            <input type="text" name="ma_cap" class="form-control form-control-sm" required
+                   placeholder="VD: III, IV, V..." maxlength="20">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Tên cấp <span class="text-danger">*</span></label>
+            <input type="text" name="ten_cap" class="form-control form-control-sm" required
+                   placeholder="VD: Đường cấp III miền núi">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Mô tả</label>
+            <textarea name="mo_ta" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small">Thứ tự hiển thị</label>
+            <input type="number" name="thu_tu_hien_thi" class="form-control form-control-sm" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SỬA CẤP ĐƯỜNG -->
+<div class="modal fade" id="modalSuaCD" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="formSuaCD" action="">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-pencil me-2"></i>Sửa cấp đường — <span id="lblMaCD"></span></h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Tên cấp <span class="text-danger">*</span></label>
+            <input type="text" name="ten_cap" id="suaCDTen" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Mô tả</label>
+            <textarea name="mo_ta" id="suaCDMoTa" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small">Thứ tự hiển thị</label>
+            <input type="number" name="thu_tu_hien_thi" id="suaCDThuTu" class="form-control form-control-sm" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-floppy me-1"></i>Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: THÊM KẾT CẤU MẶT
+═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalThemKCM" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/danh-muc/ket-cau-mat/them">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-plus-circle me-2"></i>Thêm kết cấu mặt đường</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Mã kết cấu <span class="text-danger">*</span></label>
+            <select name="ma_ket_cau" class="form-select form-select-sm" required>
+              <option value="">-- Chọn mã --</option>
+              {% for ma in ['BTN','BTXM','HH','LN','CP','DAT','BTN+LN','BTXM+LN'] %}
+              <option value="{{ ma }}">{{ ma }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Chỉ được dùng các mã đã quy định.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Tên kết cấu <span class="text-danger">*</span></label>
+            <input type="text" name="ten_ket_cau" class="form-control form-control-sm" required
+                   placeholder="VD: Bê tông nhựa">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Mô tả</label>
+            <textarea name="mo_ta" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small">Thứ tự hiển thị</label>
+            <input type="number" name="thu_tu_hien_thi" class="form-control form-control-sm" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SỬA KẾT CẤU MẶT -->
+<div class="modal fade" id="modalSuaKCM" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="formSuaKCM" action="">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-pencil me-2"></i>Sửa kết cấu mặt — <span id="lblMaKCM"></span></h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Tên kết cấu <span class="text-danger">*</span></label>
+            <input type="text" name="ten_ket_cau" id="suaKCMTen" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Mô tả</label>
+            <textarea name="mo_ta" id="suaKCMMoTa" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small">Thứ tự hiển thị</label>
+            <input type="number" name="thu_tu_hien_thi" id="suaKCMThuTu" class="form-control form-control-sm" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-floppy me-1"></i>Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: THÊM TÌNH TRẠNG
+═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalThemTT" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/danh-muc/tinh-trang/them">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-plus-circle me-2"></i>Thêm tình trạng mặt đường</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Mã tình trạng <span class="text-danger">*</span></label>
+            <select name="ma_tinh_trang" class="form-select form-select-sm" required>
+              <option value="">-- Chọn mã --</option>
+              {% for ma in ['TOT','TB','KEM','HH_NANG','THI_CONG','BAO_TRI','TAM_DONG','NGUNG','CHUA_XD'] %}
+              <option value="{{ ma }}">{{ ma }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Tên tình trạng <span class="text-danger">*</span></label>
+            <input type="text" name="ten_tinh_trang" class="form-control form-control-sm" required
+                   placeholder="VD: Tốt, Trung bình, Kém...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Màu hiển thị (HEX)</label>
+            <div class="input-group input-group-sm">
+              <input type="color" name="mau_hien_thi" class="form-control form-control-sm form-control-color"
+                     value="#6c757d" style="width:50px;">
+              <input type="text" id="mauHexThem" class="form-control form-control-sm"
+                     placeholder="#6c757d" pattern="^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$">
+            </div>
+            <div class="form-text">Định dạng #RRGGBB. Dùng để hiển thị badge màu trên bản đồ.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Mô tả</label>
+            <textarea name="mo_ta" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small">Thứ tự hiển thị</label>
+            <input type="number" name="thu_tu_hien_thi" class="form-control form-control-sm" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SỬA TÌNH TRẠNG -->
+<div class="modal fade" id="modalSuaTT" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="formSuaTT" action="">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-pencil me-2"></i>Sửa tình trạng — <span id="lblMaTT"></span></h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Tên tình trạng <span class="text-danger">*</span></label>
+            <input type="text" name="ten_tinh_trang" id="suaTTTen" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Màu hiển thị (HEX)</label>
+            <div class="input-group input-group-sm">
+              <input type="color" name="mau_hien_thi" id="suaTTMauPicker"
+                     class="form-control form-control-sm form-control-color" style="width:50px;">
+              <input type="text" id="suaTTMauHex" class="form-control form-control-sm"
+                     placeholder="#RRGGBB" readonly>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Mô tả</label>
+            <textarea name="mo_ta" id="suaTTMoTa" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small">Thứ tự hiển thị</label>
+            <input type="number" name="thu_tu_hien_thi" id="suaTTThuTu" class="form-control form-control-sm" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-floppy me-1"></i>Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Helper chung: điền data vào modal rồi mở
+function moModal(modalId, formId, action, fields) {
+  document.getElementById(formId).action = action;
+  for (const [id, val] of Object.entries(fields)) {
+    const el = document.getElementById(id);
+    if (el) el.tagName === 'TEXTAREA' ? el.value = val : el.value = val;
+  }
+  new bootstrap.Modal(document.getElementById(modalId)).show();
+}
+
+// Tình trạng: color picker ↔ text HEX
+function moModalTT(id, ma, ten, mau, moTa, thuTu) {
+  document.getElementById('formSuaTT').action = '/danh-muc/tinh-trang/' + id + '/sua';
+  document.getElementById('lblMaTT').textContent = ma;
+  document.getElementById('suaTTTen').value = ten;
+  document.getElementById('suaTTMoTa').value = moTa;
+  document.getElementById('suaTTThuTu').value = thuTu;
+  const picker = document.getElementById('suaTTMauPicker');
+  const hex    = document.getElementById('suaTTMauHex');
+  picker.value = mau || '#6c757d';
+  hex.value    = mau || '#6c757d';
+  new bootstrap.Modal(document.getElementById('modalSuaTT')).show();
+}
+
+// Sync color picker → hidden input
+document.getElementById('suaTTMauPicker').addEventListener('input', function() {
+  document.getElementById('suaTTMauHex').value = this.value;
+});
+</script>
+{% endblock %}

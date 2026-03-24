@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% block title %}Thông tin quản lý{% endblock %}
+{% block page_title %}Thông tin quản lý{% endblock %}
+
+{% block content %}
+{% if loi %}
+<div class="alert alert-danger alert-dismissible fade show">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ loi }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+{% if ok %}
+<div class="alert alert-success alert-dismissible fade show">
+  <i class="bi bi-check-circle-fill me-2"></i>Đã lưu thành công.
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════════════════
+     PHẦN 1: CẤP QUẢN LÝ
+═══════════════════════════════════════════════════════ -->
+<div class="card mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+    <span class="fw-semibold"><i class="bi bi-shield-fill me-2 text-primary"></i>Cấp quản lý đường</span>
+    {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalThemCQL">
+      <i class="bi bi-plus-lg me-1"></i>Thêm mới
+    </button>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:60px">#</th>
+          <th>Mã</th>
+          <th>Tên cấp</th>
+          <th>Mô tả</th>
+          <th style="width:80px" class="text-center">Thứ tự</th>
+          <th style="width:90px" class="text-center">Trạng thái</th>
+          <th style="width:120px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in cap_quan_ly_list %}
+        <tr class="{% if not c.is_active %}table-secondary text-muted{% endif %}">
+          <td class="text-muted small">{{ loop.index }}</td>
+          <td><span class="badge bg-primary">{{ c.ma_cap }}</span></td>
+          <td class="fw-semibold">{{ c.ten_cap }}</td>
+          <td class="small text-muted">{{ c.mo_ta or "—" }}</td>
+          <td class="text-center small">{{ c.thu_tu_hien_thi or "—" }}</td>
+          <td class="text-center">
+            {% if c.is_active %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Vô hiệu</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;"
+              onclick="moModalSuaCQL({{ c.id }}, '{{ c.ma_cap }}', '{{ c.ten_cap|replace("'","\\'")|replace('"','\\"') }}', '{{ c.mo_ta or '' }}', '{{ c.thu_tu_hien_thi or '' }}')">
+              Sửa
+            </button>
+            {% endif %}
+            {% if user and user.loai_quyen == 'ADMIN' %}
+            <form method="post" action="/danh-muc/cap-quan-ly/{{ c.id }}/xoa" class="d-inline"
+                  onsubmit="return confirm('{% if c.is_active %}Vô hiệu hóa{% else %}Khôi phục{% endif %} cấp quản lý {{ c.ma_cap }}?')">
+              <button type="submit" class="btn btn-xs py-0 px-2 {% if c.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}" style="font-size:.73rem;">
+                {% if c.is_active %}Vô hiệu{% else %}Khôi phục{% endif %}
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-3">Chưa có dữ liệu.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PHẦN 2: ĐƠN VỊ
+═══════════════════════════════════════════════════════ -->
+<div class="card mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+    <span class="fw-semibold"><i class="bi bi-building me-2 text-success"></i>Đơn vị quản lý</span>
+    {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalThemDV">
+      <i class="bi bi-plus-lg me-1"></i>Thêm mới
+    </button>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:60px">#</th>
+          <th>Mã</th>
+          <th>Tên đơn vị</th>
+          <th>Viết tắt</th>
+          <th>Đơn vị cha</th>
+          <th>Cấp</th>
+          <th>SĐT</th>
+          <th style="width:90px" class="text-center">Trạng thái</th>
+          <th style="width:120px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in don_vi_list %}
+        {% set cha = map_don_vi.get(d.parent_id) %}
+        <tr class="{% if not d.is_active %}table-secondary text-muted{% endif %}">
+          <td class="text-muted small">{{ loop.index }}</td>
+          <td><span class="badge bg-success">{{ d.ma_don_vi }}</span></td>
+          <td class="fw-semibold">{{ d.ten_don_vi }}</td>
+          <td class="small">{{ d.ten_viet_tat or "—" }}</td>
+          <td class="small">
+            {% if cha %}<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ cha.ma_don_vi }}</span>{% else %}—{% endif %}
+          </td>
+          <td class="small">{{ d.cap_don_vi or "—" }}</td>
+          <td class="small">{{ d.so_dien_thoai or "—" }}</td>
+          <td class="text-center">
+            {% if d.is_active %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Vô hiệu</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;"
+              data-bs-toggle="modal" data-bs-target="#modalSuaDV"
+              onclick="moModalSuaDV({{ d.id }},
+                '{{ d.ten_don_vi|replace("'","\\'")|replace('"','\\"') }}',
+                '{{ d.ten_viet_tat or '' }}',
+                '{{ d.parent_id or '' }}',
+                '{{ d.cap_don_vi or '' }}',
+                '{{ d.dia_chi or '' }}',
+                '{{ d.so_dien_thoai or '' }}',
+                '{{ d.email or '' }}')">
+              Sửa
+            </button>
+            {% endif %}
+            {% if user and user.loai_quyen == 'ADMIN' %}
+            <form method="post" action="/danh-muc/don-vi/{{ d.id }}/xoa" class="d-inline"
+                  onsubmit="return confirm('{% if d.is_active %}Vô hiệu hóa{% else %}Khôi phục{% endif %} đơn vị {{ d.ma_don_vi }}?')">
+              <button type="submit" class="btn btn-xs py-0 px-2 {% if d.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}" style="font-size:.73rem;">
+                {% if d.is_active %}Vô hiệu{% else %}Khôi phục{% endif %}
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted py-3">Chưa có dữ liệu.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: THÊM CẤP QUẢN LÝ
+═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalThemCQL" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/danh-muc/cap-quan-ly/them">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-plus-circle me-2"></i>Thêm cấp quản lý</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Mã cấp <span class="text-danger">*</span></label>
+            <input type="text" name="ma_cap" class="form-control form-control-sm" required
+                   placeholder="VD: QL, DT, DX..." maxlength="20">
+            <div class="form-text">Tối đa 20 ký tự, tự động viết hoa.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Tên cấp <span class="text-danger">*</span></label>
+            <input type="text" name="ten_cap" class="form-control form-control-sm" required
+                   placeholder="VD: Quốc lộ, Đường tỉnh...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Mô tả</label>
+            <textarea name="mo_ta" class="form-control form-control-sm" rows="2"
+                      placeholder="Mô tả thêm (không bắt buộc)"></textarea>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small">Thứ tự hiển thị</label>
+            <input type="number" name="thu_tu_hien_thi" class="form-control form-control-sm" min="1"
+                   placeholder="VD: 1, 2, 3...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: SỬA CẤP QUẢN LÝ
+═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalSuaCQL" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="formSuaCQL" action="">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-pencil me-2"></i>Sửa cấp quản lý — <span id="lblMaCQL"></span></h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Tên cấp <span class="text-danger">*</span></label>
+            <input type="text" name="ten_cap" id="suaCQLTen" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Mô tả</label>
+            <textarea name="mo_ta" id="suaCQLMoTa" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small">Thứ tự hiển thị</label>
+            <input type="number" name="thu_tu_hien_thi" id="suaCQLThuTu" class="form-control form-control-sm" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-floppy me-1"></i>Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: THÊM ĐƠN VỊ
+═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalThemDV" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" action="/danh-muc/don-vi/them">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-plus-circle me-2"></i>Thêm đơn vị</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Mã đơn vị <span class="text-danger">*</span></label>
+              <input type="text" name="ma_don_vi" class="form-control form-control-sm" required
+                     placeholder="VD: CTQL1" maxlength="30">
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">Tên đơn vị <span class="text-danger">*</span></label>
+              <input type="text" name="ten_don_vi" class="form-control form-control-sm" required
+                     placeholder="Tên đầy đủ đơn vị">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Tên viết tắt</label>
+              <input type="text" name="ten_viet_tat" class="form-control form-control-sm"
+                     placeholder="VD: CTQL1">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Đơn vị cha</label>
+              <select name="parent_id" class="form-select form-select-sm">
+                <option value="">-- Không có --</option>
+                {% for d in don_vi_list if d.is_active %}
+                <option value="{{ d.id }}">{{ d.ma_don_vi }} — {{ d.ten_don_vi }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Cấp đơn vị</label>
+              <input type="text" name="cap_don_vi" class="form-control form-control-sm"
+                     placeholder="VD: TINH, SXD, CONG_TY">
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Địa chỉ</label>
+              <input type="text" name="dia_chi" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Số điện thoại</label>
+              <input type="text" name="so_dien_thoai" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Email</label>
+              <input type="email" name="email" class="form-control form-control-sm">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: SỬA ĐƠN VỊ
+═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalSuaDV" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" id="formSuaDV" action="">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-pencil me-2"></i>Sửa đơn vị</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Tên đơn vị <span class="text-danger">*</span></label>
+              <input type="text" name="ten_don_vi" id="suaDVTen" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Tên viết tắt</label>
+              <input type="text" name="ten_viet_tat" id="suaDVVietTat" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Đơn vị cha</label>
+              <select name="parent_id" id="suaDVParent" class="form-select form-select-sm">
+                <option value="">-- Không có --</option>
+                {% for d in don_vi_list if d.is_active %}
+                <option value="{{ d.id }}">{{ d.ma_don_vi }} — {{ d.ten_don_vi }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Cấp đơn vị</label>
+              <input type="text" name="cap_don_vi" id="suaDVCap" class="form-control form-control-sm">
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Địa chỉ</label>
+              <input type="text" name="dia_chi" id="suaDVDiaChi" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Số điện thoại</label>
+              <input type="text" name="so_dien_thoai" id="suaDVSDT" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Email</label>
+              <input type="email" name="email" id="suaDVEmail" class="form-control form-control-sm">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-floppy me-1"></i>Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function moModalSuaCQL(id, ma, ten, moTa, thuTu) {
+  document.getElementById('formSuaCQL').action = '/danh-muc/cap-quan-ly/' + id + '/sua';
+  document.getElementById('lblMaCQL').textContent = ma;
+  document.getElementById('suaCQLTen').value = ten;
+  document.getElementById('suaCQLMoTa').value = moTa;
+  document.getElementById('suaCQLThuTu').value = thuTu;
+  new bootstrap.Modal(document.getElementById('modalSuaCQL')).show();
+}
+
+function moModalSuaDV(id, ten, vietTat, parentId, cap, diaChi, sdt, email) {
+  document.getElementById('formSuaDV').action = '/danh-muc/don-vi/' + id + '/sua';
+  document.getElementById('suaDVTen').value = ten;
+  document.getElementById('suaDVVietTat').value = vietTat;
+  document.getElementById('suaDVParent').value = parentId;
+  document.getElementById('suaDVCap').value = cap;
+  document.getElementById('suaDVDiaChi').value = diaChi;
+  document.getElementById('suaDVSDT').value = sdt;
+  document.getElementById('suaDVEmail').value = email;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Đoạn dùng chung{% endblock %}
+{% block page_title %}Danh sách đoạn dùng chung{% endblock %}
+
+{% block topbar_actions %}
+{% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+<a href="/doan-di-chung/them" class="btn btn-sm btn-primary">
+  <i class="bi bi-plus-lg me-1"></i>Thêm đoạn dùng chung
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Bộ lọc -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="form-label mb-1 small">Tuyến đi nhờ</label>
+        <select name="tuyen_di_chung_id" class="form-select form-select-sm">
+          <option value="">-- Tất cả --</option>
+          {% for t in tuyen_list %}
+          <option value="{{ t.id }}" {% if bo_loc.tuyen_di_chung_id == t.id %}selected{% endif %}>
+            {{ t.ma_tuyen }} — {{ t.ten_tuyen }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label mb-1 small">Tuyến chủ (sở hữu đoạn)</label>
+        <select name="tuyen_chinh_id" class="form-select form-select-sm">
+          <option value="">-- Tất cả --</option>
+          {% for t in tuyen_list %}
+          <option value="{{ t.id }}" {% if bo_loc.tuyen_chinh_id == t.id %}selected{% endif %}>
+            {{ t.ma_tuyen }} — {{ t.ten_tuyen }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
+        <a href="/doan-di-chung/" class="btn btn-sm btn-outline-secondary">Xóa lọc</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <span class="small text-muted">{{ ddc_list|length }} đoạn dùng chung</span>
+    {% set tong = namespace(val=0) %}
+    {% for d in ddc_list %}
+      {% if d.chieu_dai_di_chung %}
+        {% set tong.val = tong.val + d.chieu_dai_di_chung %}
+      {% endif %}
+    {% endfor %}
+    {% if ddc_list %}
+    <span class="small text-muted">Tổng chiều dài đi nhờ: <strong>{{ "%.3f"|format(tong.val) }} km</strong></span>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Mã DDC</th>
+          <th>Tuyến đi nhờ</th>
+          <th>Tuyến chủ</th>
+          <th>Đoạn vật lý</th>
+          <th>Lý trình (tuyến đi nhờ)</th>
+          <th>Lý trình (tuyến chủ)</th>
+          <th class="text-end">Dài (km)</th>
+          <th>Ghi chú</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in ddc_list %}
+        {% set t_di_chung = map_tuyen.get(d.tuyen_di_chung_id) %}
+        {% set t_chinh    = map_tuyen.get(d.tuyen_chinh_id) %}
+        {% set doan       = map_doan.get(d.doan_id) %}
+        <tr>
+          <td>
+            <span class="fw-semibold text-primary small">{{ d.ma_doan_di_chung }}</span>
+          </td>
+
+          <td class="small">
+            {% if t_di_chung %}
+              <a href="/tuyen-duong/{{ t_di_chung.id }}" class="text-decoration-none">
+                <span class="badge bg-warning text-dark" title="{{ t_di_chung.ten_tuyen }}">{{ t_di_chung.ma_tuyen }}</span>
+              </a>
+            {% else %}—{% endif %}
+          </td>
+
+          <td class="small">
+            {% if t_chinh %}
+              <a href="/tuyen-duong/{{ t_chinh.id }}" class="text-decoration-none">
+                <span class="badge bg-secondary" title="{{ t_chinh.ten_tuyen }}">{{ t_chinh.ma_tuyen }}</span>
+              </a>
+            {% else %}—{% endif %}
+          </td>
+
+          <td class="small">
+            {% if doan %}
+              <a href="/doan-tuyen/{{ doan.id }}" class="text-decoration-none">{{ doan.ma_doan }}</a>
+            {% else %}<span class="text-muted">id={{ d.doan_id }}</span>{% endif %}
+          </td>
+
+          <td class="text-muted small text-nowrap">
+            {{ d.ly_trinh_dau_di_chung | format_ly_trinh }}–{{ d.ly_trinh_cuoi_di_chung | format_ly_trinh }}
+          </td>
+
+          <td class="text-muted small text-nowrap">
+            {% if d.ly_trinh_dau_tuyen_chinh is not none and d.ly_trinh_cuoi_tuyen_chinh is not none %}
+              {{ d.ly_trinh_dau_tuyen_chinh | format_ly_trinh }}–{{ d.ly_trinh_cuoi_tuyen_chinh | format_ly_trinh }}
+            {% else %}—{% endif %}
+          </td>
+
+          <td class="text-end">
+            {% if d.chieu_dai_di_chung is not none %}
+              {{ "%.3f"|format(d.chieu_dai_di_chung) }}
+            {% else %}—{% endif %}
+          </td>
+
+          <td class="small text-muted">{{ d.ghi_chu or "—" }}</td>
+
+          <td class="text-nowrap">
+            {% if user and user.loai_quyen in ['ADMIN', 'BIEN_TAP'] %}
+            <a href="/doan-di-chung/{{ d.id }}/sua"
+               class="btn btn-xs btn-outline-secondary py-0 px-2"
+               style="font-size:.73rem;">Sửa</a>
+            {% endif %}
+            {% if user and user.loai_quyen == 'ADMIN' %}
+            <form method="post" action="/doan-di-chung/{{ d.id }}/xoa" class="d-inline"
+                  onsubmit="return confirm('Xóa đoạn dùng chung {{ d.ma_doan_di_chung }}?')">
+              <button type="submit" class="btn btn-xs btn-outline-danger py-0 px-2"
+                      style="font-size:.73rem;">Xóa</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" class="text-center text-muted py-4">Không có dữ liệu.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+      {% if ddc_list %}
+      <tfoot class="table-light fw-semibold">
+        <tr>
+          <td colspan="6" class="text-end small text-muted">Tổng cộng:</td>
+          <td class="text-end">{{ "%.3f"|format(tong.val) }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+{% endblock %}

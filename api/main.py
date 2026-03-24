@@ -25,6 +25,7 @@ from api.routes import auth
 from api.routes import tuyen_duong_route as tuyen_duong
 from api.routes import doan_tuyen_route as doan_tuyen
 from api.routes import doan_di_chung_route as doan_di_chung
+from api.routes import danh_muc_route as danh_muc
 from api.routes import thong_ke, ban_do
 
 app = FastAPI(
@@ -69,6 +70,7 @@ app.include_router(auth.router,        prefix="/auth",       tags=["Xác thực"
 app.include_router(tuyen_duong.router, prefix="/tuyen-duong", tags=["Tuyến đường"])
 app.include_router(doan_tuyen.router,    prefix="/doan-tuyen",    tags=["Đoạn tuyến"])
 app.include_router(doan_di_chung.router, prefix="/doan-di-chung", tags=["Đoạn đi chung"])
+app.include_router(danh_muc.router,      prefix="/danh-muc",      tags=["Danh mục"])
 app.include_router(thong_ke.router,      prefix="/thong-ke",      tags=["Thống kê"])
 app.include_router(ban_do.router,      prefix="/ban-do",      tags=["Bản đồ"])
 
