@@ -161,6 +161,66 @@ def vo_hieu_hoa(conn: sqlite3.Connection, id: int) -> None:
     nguoi_dung_repo.vo_hieu_hoa(conn, id)
 
 
+def tao_boi_admin(
+    conn: sqlite3.Connection,
+    ten_dang_nhap: str,
+    mat_khau: str,
+    ho_ten: str,
+    loai_quyen: str,
+    chuc_vu: Optional[str] = None,
+    don_vi_id: Optional[int] = None,
+    so_dien_thoai: Optional[str] = None,
+    email: Optional[str] = None,
+    admin_id: int = 0,
+) -> nguoi_dung_model.NguoiDung:
+    """ADMIN tạo tài khoản mới, tự động duyệt và kích hoạt ngay."""
+    _validate_quyen(loai_quyen)
+    obj = dang_ky(conn, ten_dang_nhap, mat_khau, ho_ten,
+                  chuc_vu=chuc_vu, don_vi_id=don_vi_id,
+                  so_dien_thoai=so_dien_thoai, email=email)
+    duyet_tai_khoan(conn, obj.id, admin_id, loai_quyen)
+    return _lay_theo_id_noi_bo(conn, obj.id)
+
+
+def sua_thong_tin(
+    conn: sqlite3.Connection,
+    id: int,
+    ho_ten: str,
+    loai_quyen: str,
+    chuc_vu: Optional[str] = None,
+    don_vi_id: Optional[int] = None,
+    so_dien_thoai: Optional[str] = None,
+    email: Optional[str] = None,
+    is_active: int = 1,
+) -> nguoi_dung_model.NguoiDung:
+    """ADMIN cập nhật thông tin người dùng (không đổi mật khẩu)."""
+    obj = _lay_theo_id_noi_bo(conn, id)
+    _validate_ho_ten(ho_ten)
+    _validate_quyen(loai_quyen)
+    if email and email.strip():
+        _validate_email(email)
+        # Kiểm tra email không trùng với người khác
+        existing = nguoi_dung_repo.lay_theo_email(conn, email.strip().lower())
+        if existing is not None and existing.id != id:
+            raise NguoiDungServiceError(f"Email '{email}' đã được sử dụng bởi tài khoản khác.")
+    obj.ho_ten = ho_ten.strip()
+    obj.chuc_vu = chuc_vu or None
+    obj.don_vi_id = don_vi_id
+    obj.so_dien_thoai = so_dien_thoai or None
+    obj.email = email.strip().lower() if email and email.strip() else None
+    obj.loai_quyen = loai_quyen
+    obj.is_active = is_active
+    nguoi_dung_repo.sua(conn, obj)
+    return obj
+
+
+def khoi_phuc(conn: sqlite3.Connection, id: int) -> None:
+    """ADMIN kích hoạt lại tài khoản đã bị vô hiệu hóa."""
+    obj = _lay_theo_id_noi_bo(conn, id)
+    obj.is_active = 1
+    nguoi_dung_repo.sua(conn, obj)
+
+
 def lay_tat_ca(conn: sqlite3.Connection) -> List[nguoi_dung_model.NguoiDung]:
     return nguoi_dung_repo.lay_tat_ca(conn)
 

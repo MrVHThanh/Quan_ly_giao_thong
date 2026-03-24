@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+{% block title %}Quản lý người dùng{% endblock %}
+{% block page_title %}Quản lý người dùng{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalThem">
+  <i class="bi bi-person-plus-fill me-1"></i>Tạo người dùng
+</button>
+{% endblock %}
+
+{% block content %}
+
+{% if loi %}
+<div class="alert alert-danger alert-dismissible fade show">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ loi }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+{% if ok %}
+<div class="alert alert-success alert-dismissible fade show">
+  <i class="bi bi-check-circle-fill me-2"></i>Thao tác thành công.
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{# ── Thống kê nhanh ─────────────────────────────────────────────────── #}
+{% set tong = nguoi_dung_list | length %}
+{% set cho_duyet = nguoi_dung_list | selectattr('is_approved', 'equalto', 0) | list | length %}
+{% set hoat_dong = nguoi_dung_list | selectattr('is_active', 'equalto', 1) | selectattr('is_approved', 'equalto', 1) | list | length %}
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card stat-card blue">
+      <div class="card-body py-2 px-3">
+        <div class="text-muted small">Tổng tài khoản</div>
+        <div class="fw-bold fs-4">{{ tong }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card green">
+      <div class="card-body py-2 px-3">
+        <div class="text-muted small">Đang hoạt động</div>
+        <div class="fw-bold fs-4 text-success">{{ hoat_dong }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card orange">
+      <div class="card-body py-2 px-3">
+        <div class="text-muted small">Chờ duyệt</div>
+        <div class="fw-bold fs-4 text-warning">{{ cho_duyet }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card purple">
+      <div class="card-body py-2 px-3">
+        <div class="text-muted small">Vô hiệu</div>
+        <div class="fw-bold fs-4 text-secondary">{{ tong - hoat_dong - cho_duyet }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Bảng người dùng ────────────────────────────────────────────────── #}
+<div class="card">
+  <div class="card-header bg-white py-2">
+    <span class="fw-semibold"><i class="bi bi-people-fill me-2 text-primary"></i>Danh sách tài khoản ({{ tong }})</span>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Tên đăng nhập</th>
+          <th>Họ tên</th>
+          <th>Chức vụ</th>
+          <th>Đơn vị</th>
+          <th>Quyền</th>
+          <th class="text-center">Trạng thái</th>
+          <th>Đăng nhập cuối</th>
+          <th style="width:160px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for nd in nguoi_dung_list %}
+        {% set dv = map_don_vi.get(nd.don_vi_id) %}
+        <tr class="{% if not nd.is_active or not nd.is_approved %}table-secondary{% endif %}">
+          <td class="text-muted small">{{ loop.index }}</td>
+
+          <td>
+            <span class="fw-semibold">{{ nd.ten_dang_nhap }}</span>
+            {% if nd.id == user.id %}
+              <span class="badge bg-info-subtle text-info border border-info-subtle ms-1" style="font-size:.65rem;">Bạn</span>
+            {% endif %}
+          </td>
+
+          <td>{{ nd.ho_ten or "—" }}</td>
+          <td class="small text-muted">{{ nd.chuc_vu or "—" }}</td>
+
+          <td class="small">
+            {% if dv %}
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ dv.ma_don_vi }}</span>
+            {% else %}—{% endif %}
+          </td>
+
+          <td>
+            {% if nd.loai_quyen == 'ADMIN' %}
+              <span class="badge bg-danger">ADMIN</span>
+            {% elif nd.loai_quyen == 'BIEN_TAP' %}
+              <span class="badge bg-primary">BIÊN TẬP</span>
+            {% else %}
+              <span class="badge bg-secondary">XEM</span>
+            {% endif %}
+          </td>
+
+          <td class="text-center">
+            {% if not nd.is_approved %}
+              <span class="badge bg-warning text-dark">Chờ duyệt</span>
+            {% elif nd.is_active %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Vô hiệu</span>
+            {% endif %}
+          </td>
+
+          <td class="small text-muted">{{ nd.last_login or "Chưa đăng nhập" }}</td>
+
+          <td class="text-end text-nowrap">
+            {# Nút duyệt (chờ duyệt) #}
+            {% if not nd.is_approved %}
+              <button class="btn btn-xs btn-success py-0 px-2" style="font-size:.73rem;"
+                onclick="moModalDuyet({{ nd.id }}, '{{ nd.ten_dang_nhap }}', '{{ nd.ho_ten or '' }}')">
+                Duyệt
+              </button>
+            {% endif %}
+
+            {# Nút sửa #}
+            <button class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:.73rem;"
+              onclick="moModalSua(
+                {{ nd.id }},
+                '{{ nd.ten_dang_nhap }}',
+                '{{ nd.ho_ten|replace("'","\\'")|replace('"','\\"') }}',
+                '{{ nd.chuc_vu or '' }}',
+                '{{ nd.don_vi_id or '' }}',
+                '{{ nd.so_dien_thoai or '' }}',
+                '{{ nd.email or '' }}',
+                '{{ nd.loai_quyen }}',
+                {{ nd.is_active }})">
+              Sửa
+            </button>
+
+            {# Nút đổi mật khẩu #}
+            <button class="btn btn-xs btn-outline-warning py-0 px-2" style="font-size:.73rem;"
+              onclick="moModalDoiMK({{ nd.id }}, '{{ nd.ten_dang_nhap }}')">
+              Đổi MK
+            </button>
+
+            {# Nút vô hiệu / khôi phục (không cho tự vô hiệu chính mình) #}
+            {% if nd.id != user.id %}
+            <form method="post" action="/he-thong/nguoi-dung/{{ nd.id }}/xoa" class="d-inline"
+                  onsubmit="return confirm('{% if nd.is_active %}Vô hiệu hóa{% else %}Khôi phục{% endif %} tài khoản {{ nd.ten_dang_nhap }}?')">
+              <button type="submit"
+                class="btn btn-xs py-0 px-2 {% if nd.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                style="font-size:.73rem;">
+                {% if nd.is_active %}Vô hiệu{% else %}Khôi phục{% endif %}
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted py-4">Chưa có người dùng nào.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+{# ══════════════════════════════════════════════════════
+   MODAL: TẠO MỚI NGƯỜI DÙNG
+══════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalThem" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" action="/he-thong/nguoi-dung/them">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold"><i class="bi bi-person-plus-fill me-2"></i>Tạo người dùng mới</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Tên đăng nhập <span class="text-danger">*</span></label>
+              <input type="text" name="ten_dang_nhap" class="form-control form-control-sm" required
+                     pattern="[a-zA-Z0-9_]{4,50}" title="4-50 ký tự, chỉ chữ/số/gạch dưới"
+                     placeholder="VD: nguyen_van_a">
+              <div class="form-text">4–50 ký tự, chỉ chữ, số và dấu gạch dưới.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Mật khẩu <span class="text-danger">*</span></label>
+              <div class="input-group input-group-sm">
+                <input type="password" name="mat_khau" id="themMK" class="form-control" required
+                       minlength="8" placeholder="Tối thiểu 8 ký tự">
+                <button type="button" class="btn btn-outline-secondary" onclick="togglePwd('themMK','iconThemMK')">
+                  <i class="bi bi-eye" id="iconThemMK"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Họ tên <span class="text-danger">*</span></label>
+              <input type="text" name="ho_ten" class="form-control form-control-sm" required
+                     placeholder="Nguyễn Văn A">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Phân quyền <span class="text-danger">*</span></label>
+              <select name="loai_quyen" class="form-select form-select-sm" required>
+                <option value="XEM">XEM — Chỉ xem</option>
+                <option value="BIEN_TAP">BIÊN TẬP — Thêm/sửa dữ liệu</option>
+                <option value="ADMIN">ADMIN — Toàn quyền</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Chức vụ</label>
+              <input type="text" name="chuc_vu" class="form-control form-control-sm"
+                     placeholder="VD: Chuyên viên, Trưởng phòng...">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Đơn vị</label>
+              <select name="don_vi_id" class="form-select form-select-sm">
+                <option value="">-- Không có --</option>
+                {% for d in don_vi_list if d.is_active %}
+                <option value="{{ d.id }}">{{ d.ma_don_vi }} — {{ d.ten_don_vi }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Số điện thoại</label>
+              <input type="text" name="so_dien_thoai" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Email</label>
+              <input type="email" name="email" class="form-control form-control-sm">
+            </div>
+          </div>
+          <div class="alert alert-info mt-3 mb-0 py-2 small">
+            <i class="bi bi-info-circle me-1"></i>
+            Tài khoản tạo bởi Admin sẽ được kích hoạt ngay lập tức.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Tạo tài khoản</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+{# ══════════════════════════════════════════════════════
+   MODAL: SỬA THÔNG TIN
+══════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalSua" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" id="formSua" action="">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold">
+            <i class="bi bi-pencil-square me-2"></i>Sửa thông tin —
+            <span id="lblTenSua" class="text-primary"></span>
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Họ tên <span class="text-danger">*</span></label>
+              <input type="text" name="ho_ten" id="suaHoTen" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Phân quyền <span class="text-danger">*</span></label>
+              <select name="loai_quyen" id="suaQuyen" class="form-select form-select-sm" required>
+                <option value="XEM">XEM — Chỉ xem</option>
+                <option value="BIEN_TAP">BIÊN TẬP — Thêm/sửa dữ liệu</option>
+                <option value="ADMIN">ADMIN — Toàn quyền</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Chức vụ</label>
+              <input type="text" name="chuc_vu" id="suaChucVu" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Đơn vị</label>
+              <select name="don_vi_id" id="suaDonVi" class="form-select form-select-sm">
+                <option value="">-- Không có --</option>
+                {% for d in don_vi_list if d.is_active %}
+                <option value="{{ d.id }}">{{ d.ma_don_vi }} — {{ d.ten_don_vi }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Số điện thoại</label>
+              <input type="text" name="so_dien_thoai" id="suaSDT" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Email</label>
+              <input type="email" name="email" id="suaEmail" class="form-control form-control-sm">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Trạng thái tài khoản</label>
+              <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="is_active" value="1" id="suaActive1" checked>
+                  <label class="form-check-label small" for="suaActive1">Hoạt động</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="is_active" value="0" id="suaActive0">
+                  <label class="form-check-label small" for="suaActive0">Vô hiệu hóa</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-floppy me-1"></i>Lưu thay đổi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+{# ══════════════════════════════════════════════════════
+   MODAL: ĐỔI MẬT KHẨU
+══════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalDoiMK" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="formDoiMK" action="">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold">
+            <i class="bi bi-key-fill me-2 text-warning"></i>Đặt lại mật khẩu —
+            <span id="lblTenMK" class="text-primary"></span>
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Mật khẩu mới <span class="text-danger">*</span></label>
+            <div class="input-group input-group-sm">
+              <input type="password" name="mat_khau_moi" id="mkMoi" class="form-control" required
+                     minlength="8" placeholder="Tối thiểu 8 ký tự">
+              <button type="button" class="btn btn-outline-secondary" onclick="togglePwd('mkMoi','iconMKMoi')">
+                <i class="bi bi-eye" id="iconMKMoi"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small fw-semibold">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+            <div class="input-group input-group-sm">
+              <input type="password" id="mkXacNhan" class="form-control" required
+                     minlength="8" placeholder="Nhập lại mật khẩu mới">
+              <button type="button" class="btn btn-outline-secondary" onclick="togglePwd('mkXacNhan','iconMKXN')">
+                <i class="bi bi-eye" id="iconMKXN"></i>
+              </button>
+            </div>
+            <div id="mkMatchHint" class="form-text"></div>
+          </div>
+          <div class="alert alert-warning mt-3 mb-0 py-2 small">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Admin đặt lại mật khẩu không cần biết mật khẩu cũ. Hãy thông báo cho người dùng sau khi đổi.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" id="btnDoiMK" class="btn btn-sm btn-warning">
+            <i class="bi bi-key me-1"></i>Đặt lại mật khẩu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+{# ══════════════════════════════════════════════════════
+   MODAL: DUYỆT TÀI KHOẢN
+══════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalDuyet" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="formDuyet" action="">
+        <div class="modal-header">
+          <h6 class="modal-title fw-semibold">
+            <i class="bi bi-person-check-fill me-2 text-success"></i>Duyệt tài khoản —
+            <span id="lblTenDuyet" class="text-primary"></span>
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small mb-3">Tài khoản <strong id="lblHoTenDuyet"></strong> đang chờ được duyệt.</p>
+          <div class="mb-0">
+            <label class="form-label small fw-semibold">Phân quyền khi duyệt</label>
+            <select name="loai_quyen" class="form-select form-select-sm">
+              <option value="XEM">XEM — Chỉ xem</option>
+              <option value="BIEN_TAP">BIÊN TẬP — Thêm/sửa dữ liệu</option>
+              <option value="ADMIN">ADMIN — Toàn quyền</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-sm btn-success">
+            <i class="bi bi-check-lg me-1"></i>Duyệt & kích hoạt
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Hiện/ẩn mật khẩu
+function togglePwd(inputId, iconId) {
+  const inp  = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  const show = inp.type === 'password';
+  inp.type   = show ? 'text' : 'password';
+  icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+}
+
+// Modal sửa thông tin
+function moModalSua(id, tenDN, hoTen, chucVu, donViId, sdt, email, quyen, isActive) {
+  document.getElementById('formSua').action = '/he-thong/nguoi-dung/' + id + '/sua';
+  document.getElementById('lblTenSua').textContent = tenDN;
+  document.getElementById('suaHoTen').value   = hoTen;
+  document.getElementById('suaChucVu').value  = chucVu;
+  document.getElementById('suaDonVi').value   = donViId;
+  document.getElementById('suaSDT').value     = sdt;
+  document.getElementById('suaEmail').value   = email;
+  document.getElementById('suaQuyen').value   = quyen;
+  document.getElementById('suaActive1').checked = isActive == 1;
+  document.getElementById('suaActive0').checked = isActive != 1;
+  new bootstrap.Modal(document.getElementById('modalSua')).show();
+}
+
+// Modal đổi mật khẩu
+function moModalDoiMK(id, tenDN) {
+  document.getElementById('formDoiMK').action = '/he-thong/nguoi-dung/' + id + '/doi-mk';
+  document.getElementById('lblTenMK').textContent = tenDN;
+  document.getElementById('mkMoi').value     = '';
+  document.getElementById('mkXacNhan').value = '';
+  document.getElementById('mkMatchHint').textContent = '';
+  document.getElementById('btnDoiMK').disabled = false;
+  new bootstrap.Modal(document.getElementById('modalDoiMK')).show();
+}
+
+// Modal duyệt tài khoản
+function moModalDuyet(id, tenDN, hoTen) {
+  document.getElementById('formDuyet').action = '/he-thong/nguoi-dung/' + id + '/duyet';
+  document.getElementById('lblTenDuyet').textContent   = tenDN;
+  document.getElementById('lblHoTenDuyet').textContent = hoTen || tenDN;
+  new bootstrap.Modal(document.getElementById('modalDuyet')).show();
+}
+
+// Kiểm tra mật khẩu xác nhận khớp
+(function () {
+  const mk1  = document.getElementById('mkMoi');
+  const mk2  = document.getElementById('mkXacNhan');
+  const hint = document.getElementById('mkMatchHint');
+  const btn  = document.getElementById('btnDoiMK');
+
+  function check() {
+    if (!mk2.value) { hint.textContent = ''; btn.disabled = false; return; }
+    if (mk1.value === mk2.value) {
+      hint.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Mật khẩu khớp</span>';
+      btn.disabled = false;
+    } else {
+      hint.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Mật khẩu không khớp</span>';
+      btn.disabled = true;
+    }
+  }
+  mk1.addEventListener('input', check);
+  mk2.addEventListener('input', check);
+})();
+</script>
+{% endblock %}

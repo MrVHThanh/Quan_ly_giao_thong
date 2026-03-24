@@ -102,6 +102,14 @@
         <i class="bi bi-tools me-2"></i>Thông tin kỹ thuật
       </a>
     </li>
+    {% if user and user.loai_quyen == 'ADMIN' %}
+    <li class="nav-section mt-2">Hệ thống</li>
+    <li class="nav-item">
+      <a class="nav-link {% if '/he-thong/nguoi-dung' in request.url.path %}active{% endif %}" href="/he-thong/nguoi-dung">
+        <i class="bi bi-people-fill me-2"></i>Quản lý người dùng
+      </a>
+    </li>
+    {% endif %}
   </ul>
   {% if user %}
   <div class="px-3 py-2 border-top border-secondary">
