@@ -13,7 +13,7 @@
 | **Đơn vị chủ quản** | Sở Xây dựng tỉnh Lào Cai |
 | **Stack chính** | Python 3.10+ · SQLite · FastAPI · Jinja2 |
 | **Thư mục gốc** | `D:\Dropbox\@Giaothong2\` |
-| **Database** | `database/giao_thong.db` |
+| **Database** | `giao_thong.db` (thư mục gốc — `DB_PATH_DEFAULT` trong `config/database.py`) |
 | **File dữ liệu nguồn** | `data/giao_thong_data_upadate.xlsx` (10 sheets) |
 | **Tài liệu chi tiết** | Xem `ARCHITECTURE.md` và `PROJECT_MAP.md` |
 
