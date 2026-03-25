@@ -29,7 +29,7 @@ Tình trạng (tinh-trang):
   POST /danh-muc/tinh-trang/{id}/xoa
 """
 
-import os, sys
+import os, sys, sqlite3
 from typing import Optional
 from urllib.parse import quote
 
@@ -293,6 +293,8 @@ async def them_ket_cau_mat(
                          _to_int(thu_tu_hien_thi))
     except kcm_service.KetCauMatServiceError as e:
         return _err_redirect("/danh-muc/ky-thuat", str(e))
+    except sqlite3.IntegrityError:
+        return _err_redirect("/danh-muc/ky-thuat", f"Mã kết cấu '{ma_ket_cau.strip().upper()}' đã tồn tại.")
     return RedirectResponse(url="/danh-muc/ky-thuat?ok=ket-cau-mat", status_code=302)
 
 
@@ -345,6 +347,8 @@ async def them_tinh_trang(
                         _to_int(thu_tu_hien_thi))
     except tt_service.TinhTrangServiceError as e:
         return _err_redirect("/danh-muc/ky-thuat", str(e))
+    except sqlite3.IntegrityError:
+        return _err_redirect("/danh-muc/ky-thuat", f"Mã tình trạng '{ma_tinh_trang.strip().upper()}' đã tồn tại.")
     return RedirectResponse(url="/danh-muc/ky-thuat?ok=tinh-trang", status_code=302)
 
 

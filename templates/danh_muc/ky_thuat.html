@@ -324,13 +324,11 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label small fw-semibold">Mã kết cấu <span class="text-danger">*</span></label>
-            <select name="ma_ket_cau" class="form-select form-select-sm" required>
-              <option value="">-- Chọn mã --</option>
-              {% for ma in ['BTN','BTXM','HH','LN','CP','DAT','BTN+LN','BTXM+LN'] %}
-              <option value="{{ ma }}">{{ ma }}</option>
-              {% endfor %}
-            </select>
-            <div class="form-text">Chỉ được dùng các mã đã quy định.</div>
+            <input type="text" name="ma_ket_cau" class="form-control form-control-sm" required
+                   placeholder="VD: BTN, BTXM_MOI, HH2"
+                   style="text-transform:uppercase"
+                   pattern="[A-Za-z0-9_+\-]{1,20}" maxlength="20">
+            <div class="form-text">Chữ in hoa, số, dấu _ hoặc +, tối đa 20 ký tự.</div>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Tên kết cấu <span class="text-danger">*</span></label>
@@ -402,12 +400,11 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label small fw-semibold">Mã tình trạng <span class="text-danger">*</span></label>
-            <select name="ma_tinh_trang" class="form-select form-select-sm" required>
-              <option value="">-- Chọn mã --</option>
-              {% for ma in ['TOT','TB','KEM','HH_NANG','THI_CONG','BAO_TRI','TAM_DONG','NGUNG','CHUA_XD'] %}
-              <option value="{{ ma }}">{{ ma }}</option>
-              {% endfor %}
-            </select>
+            <input type="text" name="ma_tinh_trang" class="form-control form-control-sm" required
+                   placeholder="VD: TOT, KEM_MOI, HH_NANG2"
+                   style="text-transform:uppercase"
+                   pattern="[A-Za-z0-9_]{1,20}" maxlength="20">
+            <div class="form-text">Chữ in hoa, số, dấu gạch dưới (_), tối đa 20 ký tự.</div>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Tên tình trạng <span class="text-danger">*</span></label>

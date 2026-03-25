@@ -1,0 +1,29 @@
+# deploy/giaothong.service — Systemd service cho VPS Ubuntu/Debian
+#
+# Cài đặt:
+#   sudo cp deploy/giaothong.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable giaothong
+#   sudo systemctl start giaothong
+#
+# Kiểm tra log:
+#   sudo journalctl -u giaothong -f
+
+[Unit]
+Description=Quan ly Duong bo Lao Cai
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/giaothong
+EnvironmentFile=/opt/giaothong/.env
+ExecStart=/opt/giaothong/venv/bin/gunicorn api.main:app -c gunicorn.conf.py
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

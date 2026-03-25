@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ENVIRONMENT
 # =========================
 
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
 # =========================
 # DATABASE

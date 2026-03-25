@@ -4,13 +4,12 @@ Toàn bộ validation + business logic tập trung ở đây.
 Có hàm get_or_create dùng khi seed dữ liệu.
 """
 
+import re
 import sqlite3
 from typing import Optional, List
 
 import models.ket_cau_mat_duong as ket_cau_mat_model
 import repositories.ket_cau_mat_repository as ket_cau_mat_repo
-
-MA_HOP_LE = {"BTN", "BTXM", "HH", "LN", "CP", "DAT", "BTN+LN", "BTXM+LN"}
 
 
 class KetCauMatServiceError(Exception):
@@ -65,11 +64,12 @@ def them(
 ) -> ket_cau_mat_model.KetCauMatDuong:
     _validate_ma(ma_ket_cau)
     _validate_ten(ten_ket_cau)
-    if ket_cau_mat_repo.lay_theo_ma(conn, ma_ket_cau) is not None:
-        raise KetCauMatServiceError(f"Mã kết cấu mặt đường '{ma_ket_cau}' đã tồn tại.")
+    ma_upper = ma_ket_cau.strip().upper()
+    if ket_cau_mat_repo.lay_theo_ma(conn, ma_upper) is not None:
+        raise KetCauMatServiceError(f"Mã kết cấu mặt đường '{ma_upper}' đã tồn tại.")
 
     obj = ket_cau_mat_model.KetCauMatDuong(
-        ma_ket_cau=ma_ket_cau.strip().upper(),
+        ma_ket_cau=ma_upper,
         ten_ket_cau=ten_ket_cau.strip(),
         mo_ta=mo_ta,
         thu_tu_hien_thi=thu_tu_hien_thi,
@@ -110,10 +110,10 @@ def khoi_phuc(conn: sqlite3.Connection, id: int) -> None:
 def _validate_ma(ma_ket_cau: str) -> None:
     if not ma_ket_cau or not ma_ket_cau.strip():
         raise KetCauMatServiceError("Mã kết cấu mặt đường không được để trống.")
-    if ma_ket_cau.strip().upper() not in MA_HOP_LE:
+    if not re.match(r'^[A-Z0-9_+\-]{1,20}$', ma_ket_cau.strip().upper()):
         raise KetCauMatServiceError(
-            f"Mã kết cấu '{ma_ket_cau}' không hợp lệ. "
-            f"Các mã được phép: {', '.join(sorted(MA_HOP_LE))}."
+            "Mã kết cấu chỉ được dùng chữ in hoa, số, dấu gạch dưới (_), dấu cộng (+), "
+            "tối đa 20 ký tự. VD: BTN, BTXM, HH_MOI."
         )
 
 

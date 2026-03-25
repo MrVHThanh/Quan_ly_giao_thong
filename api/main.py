@@ -12,10 +12,19 @@ Yêu cầu: pip install fastapi uvicorn jinja2 python-multipart bcrypt
 import os
 import sys
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+from api.limiter import limiter
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
@@ -29,13 +38,44 @@ from api.routes import danh_muc_route as danh_muc
 from api.routes import he_thong_route as he_thong
 from api.routes import thong_ke, ban_do
 
+_IS_DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
+
 app = FastAPI(
     title="Hệ thống Quản lý Đường bộ Lào Cai",
     description="Sở Xây dựng tỉnh Lào Cai",
     version="1.0.0",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
+    docs_url="/api/docs" if _IS_DEBUG else None,
+    redoc_url="/api/redoc" if _IS_DEBUG else None,
 )
+
+# ── Rate limiter ────────────────────────────────────────────────────────────
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ── CORS ────────────────────────────────────────────────────────────────────
+_allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:8000").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _allowed_origins],
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
+# ── Security Headers ────────────────────────────────────────────────────────
+class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        if not _IS_DEBUG:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
+
+app.add_middleware(_SecurityHeadersMiddleware)
 
 # Static files
 _STATIC = os.path.join(_ROOT, "static")

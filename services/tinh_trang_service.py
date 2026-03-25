@@ -3,13 +3,12 @@ Service: TinhTrang — Tình trạng đường
 Toàn bộ validation + business logic tập trung ở đây.
 """
 
+import re
 import sqlite3
 from typing import Optional, List
 
 import models.tinh_trang as tinh_trang_model
 import repositories.tinh_trang_repository as tinh_trang_repo
-
-MA_HOP_LE = {"TOT", "TB", "KEM", "HH_NANG", "THI_CONG", "BAO_TRI", "TAM_DONG", "NGUNG", "CHUA_XD"}
 
 
 class TinhTrangServiceError(Exception):
@@ -50,11 +49,12 @@ def them(
     _validate_ten(ten_tinh_trang)
     if mau_hien_thi:
         _validate_mau(mau_hien_thi)
-    if tinh_trang_repo.lay_theo_ma(conn, ma_tinh_trang) is not None:
-        raise TinhTrangServiceError(f"Mã tình trạng '{ma_tinh_trang}' đã tồn tại.")
+    ma_upper = ma_tinh_trang.strip().upper()
+    if tinh_trang_repo.lay_theo_ma(conn, ma_upper) is not None:
+        raise TinhTrangServiceError(f"Mã tình trạng '{ma_upper}' đã tồn tại.")
 
     obj = tinh_trang_model.TinhTrang(
-        ma_tinh_trang=ma_tinh_trang.strip().upper(),
+        ma_tinh_trang=ma_upper,
         ten_tinh_trang=ten_tinh_trang.strip(),
         mo_ta=mo_ta,
         mau_hien_thi=mau_hien_thi,
@@ -100,10 +100,10 @@ def khoi_phuc(conn: sqlite3.Connection, id: int) -> None:
 def _validate_ma(ma_tinh_trang: str) -> None:
     if not ma_tinh_trang or not ma_tinh_trang.strip():
         raise TinhTrangServiceError("Mã tình trạng không được để trống.")
-    if ma_tinh_trang.strip().upper() not in MA_HOP_LE:
+    if not re.match(r'^[A-Z0-9_]{1,20}$', ma_tinh_trang.strip().upper()):
         raise TinhTrangServiceError(
-            f"Mã tình trạng '{ma_tinh_trang}' không hợp lệ. "
-            f"Các mã được phép: {', '.join(sorted(MA_HOP_LE))}."
+            "Mã tình trạng chỉ được dùng chữ in hoa, số, dấu gạch dưới (_), "
+            "tối đa 20 ký tự. VD: TOT, KEM_MOI, HH_NANG."
         )
 
 

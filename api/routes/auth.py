@@ -23,8 +23,9 @@ if _ROOT not in sys.path:
 from config.database import get_db
 from api.routes._auth_helper import (
     lay_user_hien_tai, yeu_cau_dang_nhap, yeu_cau_quyen_admin,
-    tao_session_token, xoa_session_token, SESSION_COOKIE
+    tao_session_token, xoa_session_token, SESSION_COOKIE, SESSION_TTL
 )
+from api.limiter import limiter
 import services.nguoi_dung_service as nd_service
 
 router = APIRouter()
@@ -39,6 +40,7 @@ async def form_dang_nhap(request: Request):
 
 
 @router.post("/login")
+@limiter.limit("5/minute")
 async def xu_ly_dang_nhap(
     request: Request,
     ten_dang_nhap: str = Form(...),
@@ -49,7 +51,14 @@ async def xu_ly_dang_nhap(
         nguoi_dung = nd_service.dang_nhap(conn, ten_dang_nhap, mat_khau)
         token = tao_session_token(nguoi_dung.id, nguoi_dung.loai_quyen)
         response = RedirectResponse(url="/", status_code=302)
-        response.set_cookie(SESSION_COOKIE, token, httponly=True, max_age=86400 * 7)
+        is_secure = os.environ.get("DEBUG", "false").lower() != "true"
+        response.set_cookie(
+            SESSION_COOKIE, token,
+            httponly=True,
+            secure=is_secure,
+            samesite="Strict",
+            max_age=SESSION_TTL,
+        )
         return response
     except nd_service.DangNhapThatBaiError as e:
         return templates.TemplateResponse("auth/login.html", {

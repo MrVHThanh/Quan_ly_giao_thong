@@ -33,6 +33,15 @@ jinja2==3.1.6
 # Parse multipart/form-data — bắt buộc khi FastAPI nhận upload file hoặc form HTML
 python-multipart==0.0.20
 
+# WSGI server production — chạy nhiều worker process, dùng thay uvicorn khi deploy
+gunicorn==21.2.0
+
+# Đọc biến môi trường từ file .env — dùng khi deploy production
+python-dotenv==1.1.0
+
+# Rate limiting — giới hạn số request/phút để chống brute-force
+slowapi==0.1.9
+
 # Băm & xác minh mật khẩu an toàn (bcrypt algorithm)
 bcrypt==4.3.0
 

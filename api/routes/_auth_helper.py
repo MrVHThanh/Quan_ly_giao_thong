@@ -12,10 +12,15 @@ from typing import Optional
 from fastapi import Cookie, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 
-# Secret key — trong production đặt vào biến môi trường
-SECRET_KEY = os.environ.get("SESSION_SECRET", "laocai-giaothong-secret-2024")
+# Secret key — BẮT BUỘC set biến môi trường SESSION_SECRET trước khi chạy
+SECRET_KEY = os.environ.get("SESSION_SECRET")
+if not SECRET_KEY:
+    raise RuntimeError(
+        "Biến môi trường SESSION_SECRET chưa được cấu hình. "
+        "Hãy tạo file .env và đặt SESSION_SECRET=<chuỗi ngẫu nhiên 64 ký tự>."
+    )
 SESSION_COOKIE = "gt_session"
-SESSION_TTL = 86400 * 7  # 7 ngày
+SESSION_TTL = 86400  # 24 giờ
 
 
 def tao_session_token(user_id: int, loai_quyen: str) -> str:

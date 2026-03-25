@@ -14,8 +14,9 @@ __pycache__/
 luu/
 map/luu/
 data_noload/
-#*.db
+*.db
 .env
+api/how_to_run.py
 
 # OS
 Thumbs.db
