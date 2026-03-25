@@ -8,12 +8,17 @@ POST /he-thong/nguoi-dung/{id}/xoa     → vô hiệu hóa / khôi phục
 POST /he-thong/nguoi-dung/{id}/duyet   → duyệt tài khoản chờ duyệt
 """
 
+import io
 import os, sys
+from datetime import date
 from typing import Optional
 from urllib.parse import quote
 
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
+
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -161,6 +166,71 @@ async def xoa(
 
 
 # ── DUYỆT TÀI KHOẢN ──────────────────────────────────────────────────────
+
+# ── XUẤT DỮ LIỆU RA EXCEL ─────────────────────────────────────────────────
+
+# Bảng xuất theo thứ tự phụ thuộc FK, đúng với thứ tự seed
+_TABLES = [
+    ("cap_quan_ly",      "SELECT id, ma_cap, ten_cap, mo_ta, thu_tu_hien_thi, is_active FROM cap_quan_ly"),
+    ("cap_duong",        "SELECT id, ma_cap, ten_cap, mo_ta, thu_tu_hien_thi, is_active FROM cap_duong"),
+    ("ket_cau_mat_duong","SELECT id, ma_ket_cau, ten_ket_cau, mo_ta, thu_tu_hien_thi, is_active FROM ket_cau_mat_duong"),
+    ("tinh_trang",       "SELECT id, ma_tinh_trang, ten_tinh_trang, mo_ta, mau_hien_thi, thu_tu_hien_thi, is_active FROM tinh_trang"),
+    ("don_vi",           "SELECT id, ma_don_vi, ten_don_vi, ten_viet_tat, cap_don_vi, parent_id, dia_chi, so_dien_thoai, email, is_active FROM don_vi"),
+    ("nguoi_dung",       "SELECT id, ten_dang_nhap, ho_ten, chuc_vu, don_vi_id, so_dien_thoai, email, loai_quyen, is_active, is_approved, created_at FROM nguoi_dung"),
+    ("tuyen_duong",      "SELECT id, ma_tuyen, ten_tuyen, cap_quan_ly_id, don_vi_quan_ly_id, diem_dau, diem_cuoi, chieu_dai_quan_ly, chieu_dai_thuc_te, nam_xay_dung, nam_hoan_thanh, ghi_chu FROM tuyen_duong"),
+    ("doan_tuyen",       "SELECT id, ma_doan, tuyen_id, cap_duong_id, tinh_trang_id, ket_cau_mat_id, ly_trinh_dau, ly_trinh_cuoi, chieu_dai_thuc_te, chieu_rong_mat_min, chieu_rong_mat_max, chieu_rong_nen_min, chieu_rong_nen_max, don_vi_bao_duong_id, nam_lam_moi, ngay_cap_nhat_tinh_trang, ghi_chu FROM doan_tuyen"),
+    ("doan_di_chung",    "SELECT id, ma_doan_di_chung, tuyen_di_chung_id, tuyen_chinh_id, doan_id, ly_trinh_dau_di_chung, ly_trinh_cuoi_di_chung, ly_trinh_dau_tuyen_chinh, ly_trinh_cuoi_tuyen_chinh, ghi_chu FROM doan_di_chung"),
+]
+
+_HEADER_FILL  = PatternFill("solid", fgColor="1F4E79")
+_HEADER_FONT  = Font(bold=True, color="FFFFFF", size=10)
+_HEADER_ALIGN = Alignment(horizontal="center", vertical="center")
+
+
+@router.get("/xuat-du-lieu")
+async def xuat_du_lieu(user=Depends(yeu_cau_quyen_admin), conn=Depends(get_db)):
+    """Xuất toàn bộ DB ra file Excel — mỗi bảng một sheet."""
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)  # Xóa sheet trắng mặc định
+
+    for sheet_name, sql in _TABLES:
+        rows = conn.execute(sql).fetchall()
+        ws = wb.create_sheet(title=sheet_name)
+
+        if not rows:
+            ws.append([f"(Bảng {sheet_name} chưa có dữ liệu)"])
+            continue
+
+        # Header
+        headers = list(rows[0].keys())
+        ws.append(headers)
+        for col_idx, _ in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col_idx)
+            cell.fill  = _HEADER_FILL
+            cell.font  = _HEADER_FONT
+            cell.alignment = _HEADER_ALIGN
+        ws.row_dimensions[1].height = 22
+
+        # Dữ liệu
+        for row in rows:
+            ws.append(list(row))
+
+        # Tự động điều chỉnh độ rộng cột
+        for col in ws.columns:
+            max_len = max((len(str(c.value or "")) for c in col), default=8)
+            ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    filename = f"giao_thong_{date.today().strftime('%Y%m%d')}.xlsx"
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
 
 @router.post("/nguoi-dung/{id}/duyet")
 async def duyet(

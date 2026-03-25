@@ -2,7 +2,9 @@
 Route: ban_do.py
 GET /ban-do/                      → trang bản đồ Leaflet.js
 GET /ban-do/api/geo/{tuyen_id}    → GeoJSON coordinates của 1 tuyến
-GET /ban-do/api/geo-all           → GeoJSON tất cả tuyến (dạng FeatureCollection)
+GET /ban-do/api/geo-all           → GeoJSON tất cả tuyến từ DB (FeatureCollection)
+GET /ban-do/api/geojson-list      → Danh sách file .geojson trong data/geojson/
+GET /ban-do/api/geojson-all       → Gộp tất cả file .geojson thành FeatureCollection
 """
 
 import json
@@ -92,3 +94,81 @@ async def geo_tat_ca(conn=Depends(get_db)):
         })
 
     return JSONResponse({"type": "FeatureCollection", "features": features})
+
+
+# ── GeoJSON từ thư mục data/geojson/ ───────────────────────────────────────
+
+_GEOJSON_DIR = os.path.join(_ROOT, "data", "geojson")
+
+
+def _geojson_files() -> list[str]:
+    """Trả về danh sách đường dẫn tuyệt đối các file .geojson trong data/geojson/ (root)."""
+    if not os.path.isdir(_GEOJSON_DIR):
+        return []
+    return sorted(
+        os.path.join(_GEOJSON_DIR, f)
+        for f in os.listdir(_GEOJSON_DIR)
+        if f.lower().endswith(".geojson") and os.path.isfile(os.path.join(_GEOJSON_DIR, f))
+    )
+
+
+def _doc_geojson(filepath: str) -> list[dict]:
+    """Đọc một file GeoJSON, trả về danh sách Feature (chuẩn hoá mọi loại GeoJSON)."""
+    with open(filepath, encoding="utf-8") as f:
+        data = json.load(f)
+
+    ten_file = os.path.splitext(os.path.basename(filepath))[0]
+
+    if data.get("type") == "FeatureCollection":
+        features = data.get("features", [])
+        # Gắn tên file vào properties nếu chưa có
+        for feat in features:
+            if "properties" not in feat or feat["properties"] is None:
+                feat["properties"] = {}
+            feat["properties"].setdefault("ma_tuyen", ten_file)
+            feat["properties"].setdefault("nguon", "file")
+        return features
+
+    if data.get("type") == "Feature":
+        if "properties" not in data or data["properties"] is None:
+            data["properties"] = {}
+        data["properties"].setdefault("ma_tuyen", ten_file)
+        data["properties"].setdefault("nguon", "file")
+        return [data]
+
+    # Geometry thuần (LineString, MultiLineString...)
+    return [{
+        "type": "Feature",
+        "properties": {"ma_tuyen": ten_file, "nguon": "file"},
+        "geometry": data,
+    }]
+
+
+@router.get("/api/geojson-list")
+async def geojson_list(user=Depends(yeu_cau_dang_nhap)):
+    """Trả về danh sách tên file .geojson có trong data/geojson/."""
+    files = [os.path.basename(p) for p in _geojson_files()]
+    return JSONResponse({"files": files, "total": len(files)})
+
+
+@router.get("/api/geojson-all")
+async def geojson_all(user=Depends(yeu_cau_dang_nhap)):
+    """Gộp tất cả file .geojson trong data/geojson/ thành một FeatureCollection."""
+    features = []
+    errors   = []
+
+    for filepath in _geojson_files():
+        try:
+            features.extend(_doc_geojson(filepath))
+        except Exception as e:
+            errors.append({"file": os.path.basename(filepath), "loi": str(e)})
+
+    return JSONResponse({
+        "type":     "FeatureCollection",
+        "features": features,
+        "meta": {
+            "tong_file":    len(_geojson_files()),
+            "tong_feature": len(features),
+            "loi":          errors,
+        },
+    })

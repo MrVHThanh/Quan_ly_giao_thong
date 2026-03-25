@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(taskkill //F //IM python.exe //T)",
+      "Bash(grep -r execute.*f /d/Dropbox/@Giaothong2/repositories/)",
+      "Bash(grep -r execute.*+ /d/Dropbox/@Giaothong2/repositories/)",
+      "Bash(grep -r \"File\\\\|UploadFile\\\\|upload\" /d/Dropbox/@Giaothong2/api/routes/*.py)",
+      "Bash(grep -r \"SECRET\\\\|secret\\\\|password\\\\|PASSWORD\" /d/Dropbox/@Giaothong2/api/*.py /d/Dropbox/@Giaothong2/config/*.py)",
+      "Bash(find /d/Dropbox/@Giaothong2 -name *.py -type f -exec grep -l \"debug\\\\|DEBUG\\\\|uvicorn\" {})",
+      "Bash(2)",
+      "Bash(grep -r \"with conn:\" /d/Dropbox/@Giaothong2/repositories/*.py)",
+      "Bash(grep -r \"conn.commit\\(\\)\" /d/Dropbox/@Giaothong2/repositories/*.py)",
+      "Bash(grep -n \"execute.*f\" /d/Dropbox/@Giaothong2/repositories/*.py)",
+      "Bash(grep -A5 \"f\"\"\"\"\"\"\" /d/Dropbox/@Giaothong2/repositories/*.py)",
+      "Bash(python -c \":*)",
+      "Bash(pip install:*)"
+    ]
+  }
+}

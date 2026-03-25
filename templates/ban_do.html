@@ -30,6 +30,24 @@
       <div id="filter-cap"></div>
     </div>
     <hr class="my-2">
+    <div class="mb-2">
+      <label class="form-label mb-1" style="font-size:.75rem;">Nguồn dữ liệu</label>
+      <div class="form-check form-check-sm">
+        <input class="form-check-input" type="checkbox" id="chk-db" checked onchange="toggleNguon('db', this.checked)">
+        <label class="form-check-label" for="chk-db" style="font-size:.78rem;">
+          <span style="display:inline-block;width:16px;height:3px;background:#333;border-radius:2px;vertical-align:middle;margin-right:3px"></span>
+          Dữ liệu DB
+        </label>
+      </div>
+      <div class="form-check form-check-sm">
+        <input class="form-check-input" type="checkbox" id="chk-file" checked onchange="toggleNguon('file', this.checked)">
+        <label class="form-check-label" for="chk-file" style="font-size:.78rem;">
+          <span style="display:inline-block;width:16px;height:3px;background:#f39c12;border-radius:2px;vertical-align:middle;margin-right:3px;border-top:2px dashed #f39c12"></span>
+          File GeoJSON (<span id="lbl-file-count">0</span>)
+        </label>
+      </div>
+    </div>
+    <hr class="my-2">
     <div id="map-info" class="text-muted" style="font-size:.78rem;">
       Chọn tuyến để xem chi tiết
     </div>
@@ -42,25 +60,67 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 const map = L.map('map', { center: [22.3, 104.1], zoom: 9 });
-
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors', maxZoom: 18
 }).addTo(map);
-
-// Đảm bảo Leaflet tính lại kích thước sau khi DOM và layout ổn định
-setTimeout(function() { map.invalidateSize(); }, 200);
+setTimeout(() => map.invalidateSize(), 200);
 
 const MAU_CAP = { QL: '#e74c3c', DT: '#3498db', DX: '#27ae60', CT: '#8e44ad' };
-const layers = {};
-let allFeatures = [];
+const layersByCap  = {};   // { 'QL': [layer, ...] }
+const layersByNguon = { db: [], file: [] };
+let allBounds = [];
 
-fetch('/ban-do/api/geo-all')
-  .then(r => r.json())
-  .then(data => {
-    allFeatures = data.features;
+// ── Vẽ một Feature lên bản đồ ───────────────────────────────────────────
+function veFeature(feature, nguon) {
+  const p   = feature.properties || {};
+  const mau = nguon === 'file' ? '#f39c12' : (MAU_CAP[p.cap_quan_ly] || '#888');
+  const style = nguon === 'file'
+    ? { color: mau, weight: 2, opacity: .75, dashArray: '6 4' }
+    : { color: mau, weight: 3, opacity: .85 };
 
-    // Tạo bộ lọc cấp quản lý
-    const caps = [...new Set(allFeatures.map(f => f.properties.cap_quan_ly))].sort();
+  let layer;
+  try {
+    layer = L.geoJSON(feature, { style });
+  } catch (e) { return; }
+
+  const tenHienThi = p.ten_tuyen || p.ma_tuyen || p.name || '(không rõ)';
+  layer.on('click', () => {
+    const chiTiet = nguon === 'db'
+      ? `<div><b>Chiều dài QL:</b> ${(p.chieu_dai_quan_ly||0).toFixed(3)} km</div>
+         <div><b>GPS:</b> ${(p.chieu_dai_gps||0).toFixed(3)} km</div>
+         ${p.tuyen_id ? `<div class="mt-1"><a href="/tuyen-duong/${p.tuyen_id}" class="btn-gt btn-gt-outline btn-gt-sm py-0 px-2" style="font-size:.75rem;">Chi tiết →</a></div>` : ''}`
+      : `<div class="text-warning" style="font-size:.75rem;"><i class="bi bi-folder-fill me-1"></i>Nguồn: file GeoJSON</div>`;
+
+    document.getElementById('map-info').innerHTML =
+      `<div class="popup-title">${tenHienThi}</div>
+       <div><b>Mã:</b> ${p.ma_tuyen || '-'}</div>
+       ${chiTiet}`;
+  });
+  layer.bindTooltip(p.ma_tuyen || tenHienThi,
+    { permanent: false, direction: 'top', className: 'fw-semibold' });
+
+  layer.addTo(map);
+  layersByNguon[nguon].push(layer);
+  if (nguon === 'db' && p.cap_quan_ly) {
+    if (!layersByCap[p.cap_quan_ly]) layersByCap[p.cap_quan_ly] = [];
+    layersByCap[p.cap_quan_ly].push(layer);
+  }
+  try { allBounds.push(layer.getBounds()); } catch(_) {}
+}
+
+// ── Load song song 2 nguồn ───────────────────────────────────────────────
+Promise.allSettled([
+  fetch('/ban-do/api/geo-all').then(r => r.json()),
+  fetch('/ban-do/api/geojson-all').then(r => r.json()),
+]).then(([resDB, resFile]) => {
+
+  // Nguồn DB
+  if (resDB.status === 'fulfilled') {
+    const features = resDB.value.features || [];
+    features.forEach(f => veFeature(f, 'db'));
+
+    // Bộ lọc cấp quản lý
+    const caps = [...new Set(features.map(f => f.properties.cap_quan_ly).filter(Boolean))].sort();
     const filterDiv = document.getElementById('filter-cap');
     caps.forEach(cap => {
       const mau = MAU_CAP[cap] || '#888';
@@ -69,46 +129,37 @@ fetch('/ban-do/api/geo-all')
           <input class="form-check-input" type="checkbox" value="${cap}" id="chk-${cap}" checked
                  onchange="toggleCap('${cap}', this.checked)">
           <label class="form-check-label" for="chk-${cap}" style="font-size:.78rem;">
-            <span style="display:inline-block;width:16px;height:3px;background:${mau};border-radius:2px;vertical-align:middle;margin-right:3px"></span>
-            ${cap}
+            <span style="display:inline-block;width:16px;height:3px;background:${mau};border-radius:2px;vertical-align:middle;margin-right:3px"></span>${cap}
           </label>
         </div>`;
     });
+  }
 
-    // Vẽ tất cả tuyến
-    allFeatures.forEach(f => {
-      const p = f.properties;
-      const mau = MAU_CAP[p.cap_quan_ly] || '#888';
-      const line = L.geoJSON(f, {
-        style: { color: mau, weight: 3, opacity: .85 }
-      }).addTo(map);
+  // Nguồn file
+  if (resFile.status === 'fulfilled') {
+    const features = resFile.value.features || [];
+    const meta     = resFile.value.meta || {};
+    document.getElementById('lbl-file-count').textContent = meta.tong_file || features.length;
+    features.forEach(f => veFeature(f, 'file'));
+  }
 
-      line.on('click', () => {
-        document.getElementById('map-info').innerHTML = `
-          <div class="popup-title">${p.ten_tuyen}</div>
-          <div><b>Mã:</b> ${p.ma_tuyen}</div>
-          <div><b>Chiều dài QL:</b> ${(p.chieu_dai_quan_ly||0).toFixed(3)} km</div>
-          <div><b>Dài GPS:</b> ${(p.chieu_dai_gps||0).toFixed(3)} km</div>
-          <div class="mt-1"><a href="/tuyen-duong/${p.tuyen_id}" class="btn-gt btn-gt-outline btn-gt-sm py-0 px-2" style="font-size:.75rem;">Chi tiết →</a></div>`;
-      });
-      line.bindTooltip(p.ma_tuyen, { permanent: false, direction: 'top', className: 'fw-semibold' });
+  // Fit bounds
+  if (allBounds.length > 0) {
+    const merged = allBounds.reduce((acc, b) => acc.extend(b));
+    map.fitBounds(merged, { padding: [20, 20] });
+  }
 
-      if (!layers[p.cap_quan_ly]) layers[p.cap_quan_ly] = [];
-      layers[p.cap_quan_ly].push(line);
-    });
-
-    if (allFeatures.length > 0) {
-      const geojson = L.geoJSON({ type: 'FeatureCollection', features: allFeatures });
-      map.fitBounds(geojson.getBounds(), { padding: [20, 20] });
-    }
-  })
-  .catch(() => {
+  if (layersByNguon.db.length === 0 && layersByNguon.file.length === 0) {
     document.getElementById('map-info').innerHTML =
-      '<span class="text-danger">Chưa có dữ liệu GeoJSON. Chạy import_geojson.py trước.</span>';
-  });
+      '<span class="text-danger">Chưa có dữ liệu. Thêm file .geojson vào data/geojson/ hoặc import vào DB.</span>';
+  }
+});
 
 function toggleCap(cap, show) {
-  (layers[cap] || []).forEach(l => show ? l.addTo(map) : map.removeLayer(l));
+  (layersByCap[cap] || []).forEach(l => show ? l.addTo(map) : map.removeLayer(l));
+}
+function toggleNguon(nguon, show) {
+  (layersByNguon[nguon] || []).forEach(l => show ? l.addTo(map) : map.removeLayer(l));
 }
 </script>
 {% endblock %}
