@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Nhật ký hệ thống — GT Lào Cai{% endblock %}
+{% block page_title %}Nhật ký hệ thống{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+  {# Tab điều hướng #}
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'hoat_dong' %}active{% endif %}"
+         href="/he-thong/nhat-ky?tab=hoat_dong">
+        <i class="bi bi-journal-text me-1"></i>Nhật ký hoạt động
+        <span class="badge bg-secondary ms-1">{{ nhat_ky|length }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'dang_nhap' %}active{% endif %}"
+         href="/he-thong/nhat-ky?tab=dang_nhap">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Lịch sử đăng nhập
+        <span class="badge bg-secondary ms-1">{{ dang_nhap_log|length }}</span>
+      </a>
+    </li>
+  </ul>
+
+  {# ── TAB: NHẬT KÝ HOẠT ĐỘNG ── #}
+  {% if tab == 'hoat_dong' %}
+  <div class="card-gt p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0" style="font-size:.83rem">
+        <thead class="table-light">
+          <tr>
+            <th style="width:140px">Thời gian</th>
+            <th style="width:160px">Người dùng</th>
+            <th style="width:100px">Hành động</th>
+            <th style="width:130px">Đối tượng</th>
+            <th>Mô tả</th>
+            <th style="width:120px">IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for nk in nhat_ky %}
+          <tr>
+            <td class="text-muted">{{ nk.thoi_gian }}</td>
+            <td>
+              {% if nk.ho_ten %}
+                <span class="fw-semibold">{{ nk.ho_ten }}</span>
+              {% elif nk.nguoi_dung_id %}
+                <span class="text-muted">ID {{ nk.nguoi_dung_id }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if nk.hanh_dong == 'THÊM' %}
+                <span class="badge bg-success">{{ nk.hanh_dong }}</span>
+              {% elif nk.hanh_dong == 'SỬA' %}
+                <span class="badge bg-primary">{{ nk.hanh_dong }}</span>
+              {% elif nk.hanh_dong == 'XÓA' %}
+                <span class="badge bg-danger">{{ nk.hanh_dong }}</span>
+              {% elif nk.hanh_dong == 'DUYỆT' %}
+                <span class="badge bg-info">{{ nk.hanh_dong }}</span>
+              {% elif nk.hanh_dong == 'ĐỔI MẬT KHẨU' %}
+                <span class="badge bg-warning text-dark">{{ nk.hanh_dong }}</span>
+              {% elif nk.hanh_dong == 'XUẤT EXCEL' %}
+                <span class="badge" style="background:#1d6f42"><i class="bi bi-file-earmark-excel me-1"></i>{{ nk.hanh_dong }}</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ nk.hanh_dong }}</span>
+              {% endif %}
+            </td>
+            <td>{{ nk.doi_tuong or '—' }}</td>
+            <td class="text-muted" style="font-size:.78rem">{{ nk.mo_ta or '' }}</td>
+            <td class="text-muted font-monospace" style="font-size:.78rem">{{ nk.ip_address or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Chưa có nhật ký nào.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── TAB: LỊCH SỬ ĐĂNG NHẬP ── #}
+  {% if tab == 'dang_nhap' %}
+  <div class="card-gt p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0" style="font-size:.83rem">
+        <thead class="table-light">
+          <tr>
+            <th style="width:140px">Thời gian</th>
+            <th style="width:140px">Tên đăng nhập</th>
+            <th style="width:90px">Kết quả</th>
+            <th style="width:110px">IP</th>
+            <th style="width:180px">Vị trí</th>
+            <th>Ghi chú / Lý do thất bại</th>
+            <th>Trình duyệt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in dang_nhap_log %}
+          <tr class="{% if not log.thanh_cong %}table-danger{% endif %}">
+            <td class="text-muted">{{ log.thoi_gian }}</td>
+            <td class="fw-semibold">{{ log.ten_dang_nhap }}</td>
+            <td>
+              {% if log.thanh_cong %}
+                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Thành công</span>
+              {% else %}
+                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Thất bại</span>
+              {% endif %}
+            </td>
+            <td class="font-monospace text-muted" style="font-size:.78rem">{{ log.ip_address or '—' }}</td>
+            <td style="font-size:.78rem">
+              {% if log.vi_tri == 'Mạng nội bộ' %}
+                <span class="text-muted"><i class="bi bi-building me-1"></i>Mạng nội bộ</span>
+              {% elif log.vi_tri %}
+                <span><i class="bi bi-geo-alt me-1 text-danger"></i>{{ log.vi_tri }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="text-muted" style="font-size:.78rem">{{ log.ghi_chu or '' }}</td>
+            <td class="text-muted" style="font-size:.75rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                title="{{ log.user_agent or '' }}">{{ log.user_agent or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Chưa có lịch sử đăng nhập.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -28,6 +28,7 @@ if _ROOT not in sys.path:
 from config.database import get_db
 from api.routes._auth_helper import yeu_cau_quyen_admin
 import services.nguoi_dung_service as nd_service
+import services.nhat_ky_service as nhat_ky_service
 import repositories.don_vi_repository as dv_repo
 
 router = APIRouter()
@@ -167,6 +168,25 @@ async def xoa(
 
 # ── DUYỆT TÀI KHOẢN ──────────────────────────────────────────────────────
 
+# ── NHẬT KÝ HỆ THỐNG ──────────────────────────────────────────────────────
+
+@router.get("/nhat-ky", response_class=HTMLResponse)
+async def xem_nhat_ky(
+    request: Request,
+    tab: str = "hoat_dong",
+    user=Depends(yeu_cau_quyen_admin),
+    conn=Depends(get_db),
+):
+    nhat_ky = nhat_ky_service.lay_nhat_ky(conn, limit=300)
+    dang_nhap_log = nhat_ky_service.lay_dang_nhap_log(conn, limit=300)
+    return templates.TemplateResponse("he_thong/nhat_ky.html", {
+        "request": request,
+        "user": user,
+        "nhat_ky": nhat_ky,
+        "dang_nhap_log": dang_nhap_log,
+        "tab": tab,
+    })
+
 # ── XUẤT DỮ LIỆU RA EXCEL ─────────────────────────────────────────────────
 
 # Bảng xuất theo thứ tự phụ thuộc FK, đúng với thứ tự seed
@@ -188,8 +208,17 @@ _HEADER_ALIGN = Alignment(horizontal="center", vertical="center")
 
 
 @router.get("/xuat-du-lieu")
-async def xuat_du_lieu(user=Depends(yeu_cau_quyen_admin), conn=Depends(get_db)):
+async def xuat_du_lieu(request: Request, user=Depends(yeu_cau_quyen_admin), conn=Depends(get_db)):
     """Xuất toàn bộ DB ra file Excel — mỗi bảng một sheet."""
+    nhat_ky_service.ghi_hoat_dong(
+        conn,
+        hanh_dong="XUẤT EXCEL",
+        nguoi_dung_id=user.get("id"),
+        ho_ten=user.get("ho_ten"),
+        doi_tuong="Toàn bộ dữ liệu",
+        mo_ta="Xuất toàn bộ DB ra file Excel",
+        ip_address=request.client.host if request.client else None,
+    )
     wb = openpyxl.Workbook()
     wb.remove(wb.active)  # Xóa sheet trắng mặc định
 

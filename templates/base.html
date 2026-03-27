@@ -20,10 +20,10 @@
 <!-- Sidebar -->
 <nav class="sidebar" id="sidebar">
   <a class="sidebar-brand" href="/">
-    <div class="sidebar-brand-icon"><i class="bi bi-signpost-2-fill"></i></div>
+    <img src="/static/img/logo_sxdlc.jpg" alt="Logo Sở XD Lào Cai" class="sidebar-brand-logo">
     <div>
-      <div class="sidebar-brand-text">Giao thông Lào Cai</div>
-      <div class="sidebar-brand-sub">Sở Xây dựng</div>
+      <div class="sidebar-brand-text">Sở Xây dựng Lào Cai</div>
+      <div class="sidebar-brand-sub">Quản lý giao thông</div>
     </div>
   </a>
 
@@ -39,40 +39,61 @@
       <span class="sidebar-link-icon"><i class="bi bi-map-fill"></i></span>Bản đồ
     </a>
 
-    <div class="sidebar-section-label">Dữ liệu</div>
-    <a class="sidebar-link {% if '/tuyen-duong' in request.url.path %}active{% endif %}" href="/tuyen-duong/">
-      <span class="sidebar-link-icon"><i class="bi bi-geo-alt-fill"></i></span>Tuyến đường
-    </a>
-    <a class="sidebar-link {% if '/doan-tuyen' in request.url.path and '/doan-di-chung' not in request.url.path %}active{% endif %}" href="/doan-tuyen/">
-      <span class="sidebar-link-icon"><i class="bi bi-diagram-3-fill"></i></span>Đoạn tuyến
-    </a>
-    <a class="sidebar-link {% if '/doan-di-chung' in request.url.path %}active{% endif %}" href="/doan-di-chung/">
-      <span class="sidebar-link-icon"><i class="bi bi-intersect"></i></span>Đoạn dùng chung
-    </a>
-    <a class="sidebar-link {% if '/danh-muc/quan-ly' in request.url.path %}active{% endif %}" href="/danh-muc/quan-ly">
-      <span class="sidebar-link-icon"><i class="bi bi-shield-fill"></i></span>Thông tin quản lý
-    </a>
-    <a class="sidebar-link {% if '/danh-muc/ky-thuat' in request.url.path %}active{% endif %}" href="/danh-muc/ky-thuat">
-      <span class="sidebar-link-icon"><i class="bi bi-tools"></i></span>Thông tin kỹ thuật
-    </a>
+    {% set du_lieu_active = '/tuyen-duong' in request.url.path or '/doan-tuyen' in request.url.path or '/doan-di-chung' in request.url.path or '/danh-muc' in request.url.path %}
+    <button class="sidebar-group-toggle {% if du_lieu_active %}open{% endif %}" data-group="du-lieu">
+      <span>Dữ liệu</span>
+      <i class="bi bi-chevron-down sidebar-chevron"></i>
+    </button>
+    <div class="sidebar-group" id="group-du-lieu">
+      <a class="sidebar-link {% if '/tuyen-duong' in request.url.path %}active{% endif %}" href="/tuyen-duong/">
+        <span class="sidebar-link-icon"><i class="bi bi-geo-alt-fill"></i></span>Tuyến đường
+      </a>
+      <a class="sidebar-link {% if '/doan-tuyen' in request.url.path and '/doan-di-chung' not in request.url.path %}active{% endif %}" href="/doan-tuyen/">
+        <span class="sidebar-link-icon"><i class="bi bi-diagram-3-fill"></i></span>Đoạn tuyến
+      </a>
+      <a class="sidebar-link {% if '/doan-di-chung' in request.url.path %}active{% endif %}" href="/doan-di-chung/">
+        <span class="sidebar-link-icon"><i class="bi bi-intersect"></i></span>Đoạn dùng chung
+      </a>
+      <a class="sidebar-link {% if '/danh-muc/quan-ly' in request.url.path %}active{% endif %}" href="/danh-muc/quan-ly">
+        <span class="sidebar-link-icon"><i class="bi bi-shield-fill"></i></span>Thông tin quản lý
+      </a>
+      <a class="sidebar-link {% if '/danh-muc/ky-thuat' in request.url.path %}active{% endif %}" href="/danh-muc/ky-thuat">
+        <span class="sidebar-link-icon"><i class="bi bi-tools"></i></span>Thông tin kỹ thuật
+      </a>
+    </div>
 
-    {% if user and user.loai_quyen == 'ADMIN' %}
-    <div class="sidebar-section-label">Hệ thống</div>
-    <a class="sidebar-link {% if '/he-thong/nguoi-dung' in request.url.path %}active{% endif %}" href="/he-thong/nguoi-dung">
-      <span class="sidebar-link-icon"><i class="bi bi-people-fill"></i></span>Quản lý người dùng
-    </a>
-    <a class="sidebar-link" href="/he-thong/xuat-du-lieu" title="Xuất toàn bộ dữ liệu ra Excel">
-      <span class="sidebar-link-icon"><i class="bi bi-file-earmark-excel-fill" style="color:#1d6f42"></i></span>Xuất dữ liệu Excel
-    </a>
+    {% if user and user.get('loai_quyen') == 'ADMIN' %}
+    {% set he_thong_active = '/he-thong' in request.url.path %}
+    <button class="sidebar-group-toggle {% if he_thong_active %}open{% endif %}" data-group="he-thong">
+      <span>Hệ thống</span>
+      <i class="bi bi-chevron-down sidebar-chevron"></i>
+    </button>
+    <div class="sidebar-group" id="group-he-thong">
+      <a class="sidebar-link {% if '/he-thong/nguoi-dung' in request.url.path %}active{% endif %}" href="/he-thong/nguoi-dung">
+        <span class="sidebar-link-icon"><i class="bi bi-people-fill"></i></span>Quản lý người dùng
+      </a>
+      <a class="sidebar-link" href="/he-thong/xuat-du-lieu">
+        <span class="sidebar-link-icon"><i class="bi bi-file-earmark-excel-fill" style="color:#1d6f42"></i></span>Xuất dữ liệu Excel
+      </a>
+      <a class="sidebar-link {% if '/he-thong/nhat-ky' in request.url.path %}active{% endif %}" href="/he-thong/nhat-ky">
+        <span class="sidebar-link-icon"><i class="bi bi-journal-text"></i></span>Nhật ký hệ thống
+      </a>
+    </div>
     {% endif %}
   </div>
 
   {% if user %}
   <div class="sidebar-user">
-    <div class="sidebar-user-avatar">{{ user.id[0]|upper }}</div>
+    <div class="sidebar-user-avatar">{{ (user.get('ho_ten') or user.get('loai_quyen', '?'))[0]|upper }}</div>
     <div>
-      <div class="sidebar-user-name">{{ user.id }}</div>
-      <div class="sidebar-user-role">{{ user.loai_quyen if user.loai_quyen is defined else '' }}</div>
+      <div class="sidebar-user-name">{{ user.get('ho_ten') or ('ID: ' ~ user.get('id', '')) }}</div>
+      <div class="sidebar-user-role">
+        {% set q = user.get('loai_quyen', '') %}
+        {% if q == 'ADMIN' %}Quản trị viên
+        {% elif q == 'BIEN_TAP' %}Biên tập
+        {% elif q == 'XEM' %}Xem
+        {% else %}{{ q }}{% endif %}
+      </div>
     </div>
     <a href="/auth/logout" class="sidebar-user-logout" title="Đăng xuất">
       <i class="bi bi-box-arrow-right"></i>
@@ -93,7 +114,7 @@
     <div class="topbar-actions">
       {% block topbar_actions %}{% endblock %}
       {% if user %}
-      <span class="text-muted" style="font-size:.82rem;"><i class="bi bi-person-circle me-1"></i>{{ user.id }}</span>
+      <span class="text-muted" style="font-size:.82rem;"><i class="bi bi-person-circle me-1"></i>{{ user.get('ho_ten') or ('ID: ' ~ user.get('id', '')) }}</span>
       {% endif %}
     </div>
   </div>

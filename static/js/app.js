@@ -177,3 +177,23 @@ window.showToast = function(message, type = 'info', duration = 3500) {
     setTimeout(() => toast.remove(), 300);
   }, duration);
 };
+
+/* ── 8. Sidebar group toggle (Dữ liệu / Hệ thống) ───────── */
+(function initSidebarGroups() {
+  document.querySelectorAll('.sidebar-group-toggle').forEach(btn => {
+    const groupId = btn.dataset.group;
+    const group   = document.getElementById('group-' + groupId);
+    if (!group) return;
+
+    // Khởi tạo: mở nếu có class open (server render active link)
+    if (btn.classList.contains('open')) {
+      group.classList.add('open');
+    }
+
+    btn.addEventListener('click', function() {
+      const isOpen = group.classList.contains('open');
+      group.classList.toggle('open', !isOpen);
+      btn.classList.toggle('open', !isOpen);
+    });
+  });
+})();

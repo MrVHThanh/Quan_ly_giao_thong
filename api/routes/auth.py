@@ -27,6 +27,7 @@ from api.routes._auth_helper import (
 )
 from api.limiter import limiter
 import services.nguoi_dung_service as nd_service
+import services.nhat_ky_service as nhat_ky_service
 
 router = APIRouter()
 templates = Jinja2Templates(directory=os.path.join(_ROOT, "templates"))
@@ -47,9 +48,15 @@ async def xu_ly_dang_nhap(
     mat_khau: str = Form(...),
     conn=Depends(get_db),
 ):
+    ip = request.client.host if request.client else None
+    ua = request.headers.get("user-agent", "")[:200]
     try:
         nguoi_dung = nd_service.dang_nhap(conn, ten_dang_nhap, mat_khau)
-        token = tao_session_token(nguoi_dung.id, nguoi_dung.loai_quyen)
+        nhat_ky_service.ghi_dang_nhap(
+            conn, ten_dang_nhap=ten_dang_nhap, thanh_cong=True,
+            nguoi_dung_id=nguoi_dung.id, ip_address=ip, user_agent=ua,
+        )
+        token = tao_session_token(nguoi_dung.id, nguoi_dung.loai_quyen, nguoi_dung.ho_ten)
         response = RedirectResponse(url="/", status_code=302)
         is_secure = os.environ.get("DEBUG", "false").lower() != "true"
         response.set_cookie(
@@ -61,6 +68,10 @@ async def xu_ly_dang_nhap(
         )
         return response
     except nd_service.DangNhapThatBaiError as e:
+        nhat_ky_service.ghi_dang_nhap(
+            conn, ten_dang_nhap=ten_dang_nhap, thanh_cong=False,
+            ip_address=ip, user_agent=ua, ghi_chu=str(e),
+        )
         return templates.TemplateResponse("auth/login.html", {
             "request": request, "loi": str(e)
         }, status_code=401)
@@ -97,7 +108,15 @@ async def xu_ly_dang_ky(
         return templates.TemplateResponse("auth/dang_ky_thanh_cong.html", {"request": request})
     except nd_service.NguoiDungServiceError as e:
         return templates.TemplateResponse("auth/dang_ky.html", {
-            "request": request, "loi": str(e)
+            "request": request,
+            "loi": str(e),
+            "form": {
+                "ten_dang_nhap": ten_dang_nhap,
+                "ho_ten": ho_ten,
+                "chuc_vu": chuc_vu or "",
+                "email": email or "",
+                "so_dien_thoai": so_dien_thoai or "",
+            },
         }, status_code=400)
 
 

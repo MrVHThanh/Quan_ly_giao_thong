@@ -344,6 +344,20 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
+          <div class="mb-2">
+            <button type="button" class="btn-gt btn-gt-outline btn-gt-sm w-100" onclick="taoMatKhauTam()">
+              <i class="bi bi-shuffle me-1"></i>Tạo mật khẩu tạm thời tự động
+            </button>
+          </div>
+          <div id="mkTamHienThi" class="alert alert-success py-2 small mb-2 d-none">
+            <div class="fw-semibold mb-1"><i class="bi bi-clipboard-check me-1"></i>Mật khẩu tạm thời — copy để thông báo cho người dùng:</div>
+            <div class="d-flex align-items-center gap-2">
+              <code id="mkTamText" class="fs-6 text-success fw-bold"></code>
+              <button type="button" class="btn btn-sm btn-outline-success py-0" onclick="copyMKTam()">
+                <i class="bi bi-copy"></i>
+              </button>
+            </div>
+          </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Mật khẩu mới <span class="text-danger">*</span></label>
             <div class="input-group input-group-sm">
@@ -454,7 +468,35 @@ function moModalDoiMK(id, tenDN) {
   document.getElementById('mkXacNhan').value = '';
   document.getElementById('mkMatchHint').textContent = '';
   document.getElementById('btnDoiMK').disabled = false;
+  document.getElementById('mkTamHienThi').classList.add('d-none');
+  document.getElementById('mkTamText').textContent = '';
   new bootstrap.Modal(document.getElementById('modalDoiMK')).show();
+}
+
+function taoMatKhauTam() {
+  const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const specials = '@#$!';
+  let mk = '';
+  for (let i = 0; i < 7; i++) mk += chars[Math.floor(Math.random() * chars.length)];
+  mk += specials[Math.floor(Math.random() * specials.length)];
+  mk += Math.floor(Math.random() * 90 + 10);
+  // Xáo trộn
+  mk = mk.split('').sort(() => Math.random() - 0.5).join('');
+
+  document.getElementById('mkMoi').value     = mk;
+  document.getElementById('mkXacNhan').value = mk;
+  document.getElementById('mkTamText').textContent = mk;
+  document.getElementById('mkTamHienThi').classList.remove('d-none');
+  document.getElementById('mkMatchHint').textContent = '';
+}
+
+function copyMKTam() {
+  const mk = document.getElementById('mkTamText').textContent;
+  navigator.clipboard.writeText(mk).then(() => {
+    const btn = event.currentTarget;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    setTimeout(() => { btn.innerHTML = '<i class="bi bi-copy"></i>'; }, 1500);
+  });
 }
 
 // Modal duyệt tài khoản

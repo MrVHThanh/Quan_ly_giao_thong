@@ -25,6 +25,9 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from api.limiter import limiter
+import services.nhat_ky_service as nhat_ky_service
+from config.database import get_connection, DB_PATH_DEFAULT
+from api.routes._auth_helper import giai_ma_session_token, SESSION_COOKIE
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
@@ -77,6 +80,31 @@ class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(_SecurityHeadersMiddleware)
 
+
+# ── Activity Log Middleware ──────────────────────────────────────────────────
+class _ActivityLogMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        # Chỉ log POST thành công (2xx, 3xx redirect)
+        if request.method == "POST" and response.status_code < 400:
+            try:
+                token = request.cookies.get(SESSION_COOKIE)
+                user = giai_ma_session_token(token) if token else None
+                ip = request.client.host if request.client else None
+                conn = get_connection()
+                try:
+                    nhat_ky_service.tu_dong_ghi_hoat_dong(
+                        conn, method=request.method,
+                        path=request.url.path, user=user, ip_address=ip,
+                    )
+                finally:
+                    conn.close()
+            except Exception:
+                pass
+        return response
+
+app.add_middleware(_ActivityLogMiddleware)
+
 # Static files
 _STATIC = os.path.join(_ROOT, "static")
 if os.path.isdir(_STATIC):
@@ -118,9 +146,12 @@ app.include_router(ban_do.router,      prefix="/ban-do",      tags=["Bản đồ
 
 
 # ── Trang chủ → Dashboard ──────────────────────────────────────────────────
+from fastapi import Depends
+from api.routes._auth_helper import lay_user_hien_tai
+
 @app.get("/", response_class=HTMLResponse)
-async def trang_chu(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+async def trang_chu(request: Request, user=Depends(lay_user_hien_tai)):
+    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
 
 
 # ── Health check ───────────────────────────────────────────────────────────

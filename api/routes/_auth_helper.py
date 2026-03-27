@@ -23,11 +23,12 @@ SESSION_COOKIE = "gt_session"
 SESSION_TTL = 86400  # 24 giờ
 
 
-def tao_session_token(user_id: int, loai_quyen: str) -> str:
-    """Tạo token: base64(user_id:quyen:timestamp):hmac_sig"""
-    payload = f"{user_id}:{loai_quyen}:{int(time.time())}"
-    sig = hmac.new(SECRET_KEY.encode(), payload.encode(), hashlib.sha256).hexdigest()
+def tao_session_token(user_id: int, loai_quyen: str, ho_ten: str = "") -> str:
+    """Tạo token: base64(user_id:quyen:timestamp:ho_ten):hmac_sig"""
     import base64
+    ho_ten_safe = ho_ten.replace(":", " ")  # tránh xung đột delimiter
+    payload = f"{user_id}:{loai_quyen}:{int(time.time())}:{ho_ten_safe}"
+    sig = hmac.new(SECRET_KEY.encode(), payload.encode(), hashlib.sha256).hexdigest()
     b64 = base64.urlsafe_b64encode(payload.encode()).decode()
     return f"{b64}.{sig}"
 
@@ -44,10 +45,14 @@ def giai_ma_session_token(token: str) -> Optional[dict]:
         expected = hmac.new(SECRET_KEY.encode(), payload.encode(), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(sig, expected):
             return None
-        user_id_str, loai_quyen, ts_str = payload.split(":")
+        split = payload.split(":", 3)
+        if len(split) < 3:
+            return None
+        user_id_str, loai_quyen, ts_str = split[0], split[1], split[2]
+        ho_ten = split[3] if len(split) == 4 else ""
         if int(time.time()) - int(ts_str) > SESSION_TTL:
             return None
-        return {"id": int(user_id_str), "loai_quyen": loai_quyen}
+        return {"id": int(user_id_str), "loai_quyen": loai_quyen, "ho_ten": ho_ten}
     except Exception:
         return None
 

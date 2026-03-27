@@ -277,6 +277,37 @@ CREATE TABLE IF NOT EXISTS doan_tuyen_geo (
 # Sẽ dùng khi cần hiển thị màu sắc từng đoạn theo tình trạng/cấp trên bản đồ
 
 
+# ── 15. dang_nhap_log ────────────────────────────────────────────────────────
+SQL_DANG_NHAP_LOG = """
+CREATE TABLE IF NOT EXISTS dang_nhap_log (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    ten_dang_nhap   TEXT    NOT NULL,
+    nguoi_dung_id   INTEGER REFERENCES nguoi_dung(id),
+    ip_address      TEXT,
+    vi_tri          TEXT,
+    user_agent      TEXT,
+    thanh_cong      INTEGER NOT NULL DEFAULT 0,
+    ghi_chu         TEXT,
+    thoi_gian       TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+);
+"""
+
+# ── 16. nhat_ky_hoat_dong ─────────────────────────────────────────────────────
+SQL_NHAT_KY_HOAT_DONG = """
+CREATE TABLE IF NOT EXISTS nhat_ky_hoat_dong (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    nguoi_dung_id   INTEGER REFERENCES nguoi_dung(id),
+    ho_ten          TEXT,
+    hanh_dong       TEXT    NOT NULL,
+    doi_tuong       TEXT,
+    doi_tuong_id    INTEGER,
+    mo_ta           TEXT,
+    ip_address      TEXT,
+    thoi_gian       TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+);
+"""
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # INDEXES
 # ══════════════════════════════════════════════════════════════════════════════
@@ -571,6 +602,8 @@ def create_tables(db_path: Optional[str] = None) -> None:
             conn.execute(SQL_HINH_ANH_DOAN_TUYEN)
             conn.execute(SQL_TUYEN_DUONG_GEO)
             conn.execute(SQL_DOAN_TUYEN_GEO)
+            conn.execute(SQL_DANG_NHAP_LOG)
+            conn.execute(SQL_NHAT_KY_HOAT_DONG)
 
             # ── Indexes ────────────────────────────────────────────────────
             for sql in SQL_INDEXES.strip().split(";"):
