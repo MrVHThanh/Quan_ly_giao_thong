@@ -52,8 +52,10 @@ def _doc_excel(duong_dan: str) -> list[dict]:
     wb = openpyxl.load_workbook(duong_dan)
     ws = wb.active
     tai_khoans = []
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        ten_dang_nhap = str(row[0]).strip() if row[0] else None
+    # Dòng 1: tiêu đề lớn, dòng 2: ghi chú, dòng 3: header cột → dữ liệu từ dòng 4
+    # Cột: A=STT, B=Tên đăng nhập, C=Họ tên, D=Chức vụ, E=Email, F=SĐT, G=Ghi chú
+    for row in ws.iter_rows(min_row=4, values_only=True):
+        ten_dang_nhap = str(row[1]).strip() if row[1] else None
         ho_ten        = str(row[2]).strip() if row[2] else None
         chuc_vu       = str(row[3]).strip() if row[3] else None
         email         = str(row[4]).strip() if row[4] else None
