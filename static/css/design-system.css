@@ -223,6 +223,28 @@ body {
 
 /* ── Bảng dữ liệu chuẩn ── */
 .table-gt { width: 100%; border-collapse: collapse; }
+
+/* Scroll ngang — cột đầu sticky */
+.card-gt-body.p-0 {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-gt thead th:first-child,
+.table-gt tbody td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #fff;
+  box-shadow: 2px 0 4px rgba(0,0,0,.08);
+}
+.table-gt thead th:first-child {
+  background: var(--color-bg-page);
+  z-index: 3;
+}
+.table-gt tbody tr:hover td:first-child {
+  background: var(--color-bg-hover);
+}
+
 .table-gt thead th {
   padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-xs);

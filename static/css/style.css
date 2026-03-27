@@ -47,6 +47,19 @@
   border: 2px solid rgba(255,255,255,.3);
   box-shadow: 0 2px 8px rgba(0,0,0,.3);
 }
+
+/* Mobile: sidebar dạng ngang, logo nhỏ hơn */
+@media (max-width: 992px) {
+  .sidebar-brand {
+    flex-direction: row;
+    text-align: left;
+    padding: var(--space-2) var(--space-4);
+    gap: var(--space-3);
+  }
+  .sidebar-brand-logo {
+    width: 32px; height: 32px;
+  }
+}
 .sidebar-brand-icon {
   width: 36px; height: 36px; flex-shrink: 0;
   background: var(--color-accent);
@@ -162,6 +175,13 @@
   transition: color var(--transition-fast);
 }
 .sidebar-user-logout:hover { color: #fff; }
+.sidebar-version {
+  text-align: center;
+  font-size: 10px;
+  color: rgba(255,255,255,.2);
+  padding: var(--space-1) 0 var(--space-2);
+  letter-spacing: .05em;
+}
 
 /* Desktop toggle — ẩn sidebar (giữ nguyên UX hiện tại) */
 .sidebar.hidden { left: calc(-1 * var(--sidebar-width)); }
@@ -261,6 +281,7 @@
   .sidebar {
     transform: translateX(-100%);
     left: 0;
+    z-index: 300;
   }
   .sidebar.hidden { transform: translateX(-100%); left: 0; }
   .sidebar.open {
@@ -295,7 +316,7 @@
   display: none;
   position: fixed; inset: 0;
   background: rgba(0,0,0,.4);
-  z-index: calc(var(--z-sidebar) - 1);
+  z-index: 299;
   opacity: 0; transition: opacity var(--transition-base);
 }
 .sidebar-overlay.visible { display: block; opacity: 1; }

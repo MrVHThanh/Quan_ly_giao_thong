@@ -69,5 +69,23 @@ def chay_migration():
     print("Migration hoàn thành.")
 
 
+def up(conn):
+    """Chuẩn hàm up() để migrate.py gọi được."""
+    cot_hien_co = lay_cot_hien_co(conn, "thong_tin_tuyen")
+    cot_can_them = [
+        ("ly_do_xay_dung",     "TEXT"),
+        ("dac_diem_dia_ly",    "TEXT"),
+        ("lich_su_hinh_thanh", "TEXT"),
+        ("y_nghia_kinh_te",    "TEXT"),
+        ("ghi_chu",            "TEXT"),
+        ("updated_at",         "TEXT"),
+    ]
+    for ten_cot, kieu in cot_can_them:
+        if ten_cot not in cot_hien_co:
+            conn.execute(f"ALTER TABLE thong_tin_tuyen ADD COLUMN {ten_cot} {kieu}")
+            print(f"         + Thêm cột: {ten_cot}")
+    conn.commit()
+
+
 if __name__ == "__main__":
     chay_migration()

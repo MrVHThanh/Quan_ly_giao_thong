@@ -112,6 +112,17 @@ if os.path.isdir(_STATIC):
 
 templates = Jinja2Templates(directory=os.path.join(_ROOT, "templates"))
 
+# ── Đọc version từ file VERSION ────────────────────────────────────────────
+def _doc_version() -> str:
+    try:
+        with open(os.path.join(_ROOT, "VERSION"), "r") as f:
+            return f.read().strip()
+    except Exception:
+        return "?"
+
+_APP_VERSION = _doc_version()
+templates.env.globals["app_version"] = _APP_VERSION
+
 
 # ── Jinja2 custom filters ──────────────────────────────────────────────────
 def _format_ly_trinh(value) -> str:
