@@ -287,7 +287,7 @@
   .sidebar {
     transform: translateX(-100%);
     left: 0;
-    z-index: 300;
+    z-index: 1000;
   }
   .sidebar.hidden { transform: translateX(-100%); left: 0; }
   .sidebar.open {
@@ -322,7 +322,7 @@
   display: none;
   position: fixed; inset: 0;
   background: rgba(0,0,0,.4);
-  z-index: 299;
+  z-index: 999;
   opacity: 0; transition: opacity var(--transition-base);
 }
 .sidebar-overlay.visible { display: block; opacity: 1; }
