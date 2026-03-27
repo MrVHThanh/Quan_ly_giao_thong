@@ -43,7 +43,9 @@ def get_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
       - journal_mode = WAL         → ghi nhanh hơn, tránh lock khi đọc đồng thời
     """
     path = db_path or DB_PATH_DEFAULT
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    dir_part = os.path.dirname(path)
+    if dir_part:
+        os.makedirs(dir_part, exist_ok=True)
 
     #conn = sqlite3.connect(path)
     conn = sqlite3.connect(path, check_same_thread=False)
