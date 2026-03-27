@@ -3,7 +3,7 @@
 > File này liệt kê **mọi file** trong dự án với mô tả vai trò và nội dung.
 > Dùng để tra cứu nhanh khi cần tìm đúng file để chỉnh sửa.
 > Xem `CLAUDE.md` cho quy tắc code · Xem `ARCHITECTURE.md` cho kiến trúc chi tiết.
-> Cập nhật lần cuối: 2025-03-25
+> Cập nhật lần cuối: 2026-03-27
 
 ---
 
@@ -11,17 +11,21 @@
 
 ```
 D:\Dropbox\@Giaothong2\
-├── CLAUDE.md                  ← Hướng dẫn làm việc cho Claude Code (ĐỌC TRƯỚC)
-├── ARCHITECTURE.md            ← Kiến trúc kỹ thuật chi tiết
-├── PROJECT_MAP.md             ← File này — bản đồ toàn bộ project
-├── gunicorn.conf.py           ← Cấu hình Gunicorn production
-├── main.py                    ← Entry point báo cáo console (dev/test)
-├── requirements.txt           ← Dependencies đóng băng phiên bản
-├── requirements-minimal.txt   ← Dependencies tối thiểu
-├── .gitignore                 ← Ignore: venv/, *.db, .env, luu/, ...
-├── .env                       ← Biến môi trường (GITIGNORED — tự tạo)
-├── .env.example               ← Mẫu .env
-├── giao_thong.db              ← SQLite database (GITIGNORED)
+├── CLAUDE.md                      ← Hướng dẫn làm việc cho Claude Code (ĐỌC TRƯỚC)
+├── ARCHITECTURE.md                ← Kiến trúc kỹ thuật chi tiết
+├── PROJECT_MAP.md                 ← File này — bản đồ toàn bộ project
+├── CHANGELOG.md                   ← Lịch sử thay đổi theo phiên bản
+├── VERSION                        ← Số phiên bản hiện tại (1.0.2)
+├── migrate.py                     ← Tool chạy migration tự động, theo dõi lịch sử
+├── gunicorn.conf.py               ← Cấu hình Gunicorn production
+├── main.py                        ← Entry point báo cáo console (dev/test)
+├── requirements.txt               ← Dependencies đóng băng phiên bản
+├── requirements-minimal.txt       ← Dependencies tối thiểu
+├── .gitignore                     ← Ignore: venv/, *.db, .env, luu/, ...
+├── .env                           ← Biến môi trường (GITIGNORED — tự tạo)
+├── .env.example                   ← Mẫu .env
+├── giao_thong.db                  ← SQLite database (GITIGNORED — local only)
+├── Danh_sach_tai_khoan_sxd.xlsx   ← Mẫu danh sách tài khoản để import
 │
 ├── config/
 ├── migrations/
@@ -63,12 +67,15 @@ D:\Dropbox\@Giaothong2\
 |---|---|
 | `migrations/__init__.py` | Package init |
 | `migrations/m001_initial_schema.py` | Tạo 13 bảng + 6 triggers + 5 indexes (CREATE TABLE IF NOT EXISTS) |
+| `migrations/m002_nhat_ky.py` | Tạo 2 bảng nhật ký: `dang_nhap_log`, `nhat_ky_hoat_dong` + 2 indexes |
+| `migrations/alter_thong_tin_tuyen.py` | ALTER TABLE thêm cột cho `thong_tin_tuyen` |
 
-**Khi thêm bảng mới:** Thêm vào `m001_initial_schema.py` hàm `up()`.
+**Tool chạy migration:** `migrate.py` (thư mục gốc) — chạy tuần tự các migration, theo dõi lịch sử, idempotent.
+**Khi thêm bảng mới:** Tạo file `migrations/mXXX_ten.py` với hàm `up(conn)`, rồi đăng ký trong `migrate.py`.
 
 ---
 
-## models/ — Plain Objects (14 files)
+## models/ — Plain Objects (15 files)
 
 | File | Class | Fields quan trọng |
 |---|---|---|
@@ -84,12 +91,13 @@ D:\Dropbox\@Giaothong2\
 | `models/doan_di_chung.py` | `DoanDiChung` | id, ma_doan_di_chung, tuyen_di_chung_id, tuyen_chinh_id, doan_id, ly_trinh_* |
 | `models/hinh_anh_doan_tuyen.py` | `HinhAnhDoanTuyen` | id, doan_id, duong_dan_file, mo_ta, ngay_chup, lat, lng, ly_trinh_anh |
 | `models/tuyen_duong_geo.py` | `TuyenDuongGeo` | id, tuyen_id, coordinates (JSON), so_diem, chieu_dai_gps |
+| `models/nhat_ky_model.py` | `DangNhapLog`, `NhatKyHoatDong` | Plain objects cho 2 bảng nhật ký |
 | `models/thong_ke.py` | `ThongKeToanTinh`, `ThongKeMoiTuyen` | Aggregate objects cho thống kê |
 | `models/__init__.py` | — | Package init |
 
 ---
 
-## repositories/ — Data Access Layer (14 files)
+## repositories/ — Data Access Layer (15 files)
 
 Tất cả dùng `_SELECT_COLS` + `_row_to_object(row)` theo chuẩn.
 Không chứa business logic.
@@ -108,12 +116,13 @@ Không chứa business logic.
 | `repositories/doan_di_chung_repository.py` | lay_tat_ca, lay_theo_id, lay_theo_tuyen_di_chung_id(), lay_theo_doan_id(), them, cap_nhat, xoa_mem |
 | `repositories/hinh_anh_repository.py` | lay_theo_doan_id(), them, xoa_mem, xoa_vinh_vien() |
 | `repositories/tuyen_duong_geo_repository.py` | lay_theo_tuyen_id(), lay_tat_ca_co_geo(), them_hoac_cap_nhat() |
+| `repositories/nhat_ky_repository.py` | ghi_dang_nhap(), lay_dang_nhap_log(), ghi_hoat_dong(), lay_nhat_ky() — không soft-delete, chỉ ghi thêm |
 | `repositories/thong_ke_repository.py` | lay_thong_ke_toan_tinh(), lay_thong_ke_moi_tuyen() — JOIN phức tạp |
 | `repositories/__init__.py` | Package init |
 
 ---
 
-## services/ — Business Logic Layer (14 files)
+## services/ — Business Logic Layer (15 files)
 
 Mỗi service có exception riêng: `CapQuanLyServiceError`, `TuyenDuongServiceError`, v.v.
 
@@ -131,6 +140,7 @@ Mỗi service có exception riêng: `CapQuanLyServiceError`, `TuyenDuongServiceE
 | `services/doan_di_chung_service.py` | `DoanDiChungServiceError` | **validate 6 điều kiện DDC**, sinh ma_doan_di_chung |
 | `services/hinh_anh_service.py` | `HinhAnhServiceError` | upload_anh(), doc_exif_gps() |
 | `services/tuyen_duong_geo_service.py` | `TuyenDuongGeoServiceError` | parse_geojson(), tinh_haversine() |
+| `services/nhat_ky_service.py` | — | ghi_dang_nhap(), ghi_hoat_dong(), lay_nhat_ky_phan_trang() |
 | `services/thong_ke_service.py` | — | lay_thong_ke_toan_tinh(), lay_thong_ke_moi_tuyen() |
 | `services/__init__.py` | — | Package init |
 
@@ -201,7 +211,7 @@ Shared limiter — import vào bất kỳ route nào cần rate limit.
 | `api/routes/doan_tuyen_route.py` | `/doan-tuyen` | CRUD đoạn + ảnh |
 | `api/routes/doan_di_chung_route.py` | `/doan-di-chung` | CRUD DDC |
 | `api/routes/danh_muc_route.py` | `/danh-muc` | Quản lý danh mục (cấp QL, cấp đường, kết cấu, tình trạng, đơn vị) |
-| `api/routes/he_thong_route.py` | `/he-thong` | Quản lý user, xuất Excel (ADMIN only) |
+| `api/routes/he_thong_route.py` | `/he-thong` | Quản lý user, xuất Excel, nhật ký hệ thống (ADMIN only) |
 | `api/routes/thong_ke.py` | `/thong-ke` | Thống kê tổng hợp |
 | `api/routes/ban_do.py` | `/ban-do` | Bản đồ Leaflet + API GeoJSON (DB + file) |
 
@@ -264,6 +274,7 @@ Shared limiter — import vào bất kỳ route nào cần rate limit.
 | File | Mô tả |
 |---|---|
 | `templates/he_thong/nguoi_dung.html` | Quản lý user: danh sách, thêm, sửa, duyệt, đổi mật khẩu |
+| `templates/he_thong/nhat_ky.html` | Nhật ký hệ thống: log đăng nhập + nhật ký hoạt động, phân trang |
 
 ---
 
@@ -272,8 +283,9 @@ Shared limiter — import vào bất kỳ route nào cần rate limit.
 | File | Mô tả |
 |---|---|
 | `static/css/design-system.css` | CSS Design System: variables, sidebar, topbar, buttons, cards |
-| `static/css/style.css` | CSS custom bổ sung |
+| `static/css/style.css` | CSS layout system: sidebar z-index (1000 mobile), responsive breakpoints |
 | `static/js/app.js` | JavaScript chung (toggle sidebar, v.v.) |
+| `static/img/logo_sxdlc.jpg` | Logo Sở Xây dựng Lào Cai — hiển thị trên sidebar |
 
 ---
 
@@ -284,6 +296,7 @@ Shared limiter — import vào bất kỳ route nào cần rate limit.
 | `tools/excel_to_data.py` | Đọc Excel 10 sheets → sinh file `data/*_data.py` |
 | `tools/import_geojson.py` | Import .geojson → bảng `tuyen_duong_geo` (parse + Haversine + JSON) |
 | `tools/export_geojson.py` | Export `tuyen_duong_geo` → file .geojson theo `--ma-tuyen` |
+| `tools/import_tai_khoan.py` | Import danh sách tài khoản từ Excel → DB, mật khẩu mặc định `sxd@1234`, quyền XEM, idempotent |
 
 ---
 
@@ -308,7 +321,10 @@ Shared limiter — import vào bất kỳ route nào cần rate limit.
 |---|---|
 | `deploy/nginx.conf` | Nginx: HTTP→HTTPS redirect, SSL termination, proxy_pass 127.0.0.1:8000, serve /static |
 | `deploy/giaothong.service` | systemd unit: EnvironmentFile, ExecStart gunicorn, Restart=on-failure |
+| `deploy/HUONG_DAN_DEPLOY_VPS.md` | Hướng dẫn deploy đầy đủ: Clone mới, Cập nhật, Backup DB, Rollback |
 | `gunicorn.conf.py` | bind="127.0.0.1:8000", workers=CPU×2+1, UvicornWorker, max_requests=1000 |
+
+**Vị trí DB trên VPS:** `/home/giaothong/data/giao_thong.db` — tách ngoài thư mục dự án, cấu hình qua `.env` `DB_PATH`.
 
 ---
 

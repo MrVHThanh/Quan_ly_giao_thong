@@ -6,6 +6,26 @@ Versioning theo [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v1.0.2] — 2026-03-27
+
+### Thêm mới
+- Script `tools/import_tai_khoan.py` — import danh sách tài khoản từ file Excel vào DB, idempotent
+- File `Danh_sach_tai_khoan_sxd.xlsx` — mẫu danh sách tài khoản chuẩn (có header, ghi chú mặc định)
+- Hướng dẫn deploy VPS đầy đủ (`deploy/HUONG_DAN_DEPLOY_VPS.md`): Clone mới, Cập nhật, backup DB, rollback
+
+### Cải thiện
+- DB trên VPS tách ra ngoài thư mục dự án: `/home/giaothong/data/giao_thong.db` — tránh mất dữ liệu khi clone mới
+- `config/database.py`: `DB_PATH` đọc từ biến môi trường `.env` thay vì hardcode; fix lỗi `makedirs` với đường dẫn tương đối
+- Logo sidebar nhỏ hơn trên điện thoại nhỏ (≤576px): 24px
+- Sidebar mobile: `z-index` tăng lên 1000 — không bị bản đồ Leaflet che khuất
+
+### Sửa lỗi
+- Sidebar bị bản đồ Leaflet đè lên trên mobile (Leaflet dùng z-index 400–700)
+- Logo hiển thị quá to trên điện thoại nhỏ
+- `DB_PATH` hardcode khiến VPS tạo DB rỗng trong thư mục dự án thay vì dùng đường dẫn trong `.env`
+
+---
+
 ## [v1.0.1] — 2026-03-27
 
 ### Thêm mới

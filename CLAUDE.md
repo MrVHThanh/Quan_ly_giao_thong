@@ -2,7 +2,7 @@
 
 > File này là **nguồn tham chiếu chính** cho Claude Code khi làm việc trong dự án.
 > Đọc toàn bộ file này trước khi bắt đầu bất kỳ tác vụ nào.
-> Cập nhật lần cuối: 2025-03-25
+> Cập nhật lần cuối: 2026-03-27
 
 ---
 
@@ -14,7 +14,7 @@
 | **Đơn vị chủ quản** | Sở Xây dựng tỉnh Lào Cai |
 | **Stack chính** | Python 3.10 · SQLite · FastAPI 0.115 · Jinja2 3.1 |
 | **Thư mục gốc** | `D:\Dropbox\@Giaothong2\` |
-| **Database** | `giao_thong.db` (thư mục gốc, gitignored) |
+| **Database** | Local: `giao_thong.db` (thư mục gốc) · VPS: `/home/giaothong/data/giao_thong.db` |
 | **File dữ liệu nguồn** | `data/giao_thong_data_upadate.xlsx` (10 sheets) |
 | **Tài liệu chi tiết** | `ARCHITECTURE.md` và `PROJECT_MAP.md` |
 | **Branch chính** | `main` (production), `develop` (integration) |
@@ -50,6 +50,13 @@ python tools/import_geojson.py map/QL4E.geojson
 
 # Export GeoJSON từ DB
 python tools/export_geojson.py --ma-tuyen QL4E
+
+# Import danh sách tài khoản từ Excel vào DB
+python tools/import_tai_khoan.py
+python tools/import_tai_khoan.py --file path/to/file.xlsx
+
+# Chạy migration (sau khi thêm migration mới)
+python migrate.py
 
 # Reset DB hoàn toàn (DEV ONLY — mất dữ liệu!)
 python config/database.py --reset
@@ -253,7 +260,9 @@ ADMIN > BIEN_TAP > XEM
 | doan_tuyen | 222 |
 | doan_di_chung | 15 |
 | don_vi | 17 |
-| nguoi_dung | 4 |
+| nguoi_dung | 14 (4 mặc định + 10 import từ Excel) |
+| dang_nhap_log | (ghi tự động khi đăng nhập) |
+| nhat_ky_hoat_dong | (ghi tự động qua ActivityLogMiddleware) |
 | tuyen_duong_geo | 3 |
 | cap_quan_ly | 8 (QL, DT, DX, DD, NT, TX, CD, DK) |
 | cap_duong | 7 |
@@ -363,6 +372,9 @@ cp file.geojson data/geojson/TENTUYEN.geojson
 | Sửa danh mục kết cấu / tình trạng | `api/routes/danh_muc_route.py` · `templates/danh_muc/ky_thuat.html` |
 | Sửa layout chung | `templates/base.html` · `static/css/design-system.css` |
 | Cập nhật data từ Excel | `tools/excel_to_data.py` |
+| Import tài khoản từ Excel | `tools/import_tai_khoan.py` + `Danh_sach_tai_khoan_sxd.xlsx` |
+| Chạy migration DB | `migrate.py` |
+| Xem nhật ký hệ thống | `/he-thong/nhat-ky` (ADMIN) |
 | Deploy production | `gunicorn.conf.py` · `deploy/nginx.conf` · `deploy/giaothong.service` |
 | Xem kiến trúc chi tiết | `ARCHITECTURE.md` |
 | Xem bản đồ file | `PROJECT_MAP.md` |
