@@ -11,11 +11,48 @@
 |---|---|
 | **VPS user** | `giaothong` |
 | **Thư mục dự án** | `/home/giaothong/giaothong-app/` |
+| **Thư mục dữ liệu** | `/home/giaothong/data/` ← DB nằm đây, ngoài repo |
+| **Database** | `/home/giaothong/data/giao_thong.db` |
 | **Python (venv)** | `/home/giaothong/giaothong-app/venv/bin/python3` |
 | **Service name** | `giaothong` |
 | **Nhánh production** | `main` |
 | **Nhánh phát triển** | `develop` |
 | **GitHub repo** | `https://github.com/MrVHThanh/Quan_ly_giao_thong.git` |
+
+> **Tại sao DB nằm ngoài thư mục dự án?**
+> Khi clone mới (`rm -rf giaothong-app`), DB không bị xóa theo.
+> File `.env` trên local và VPS có `DB_PATH` khác nhau — mỗi môi trường tự cấu hình.
+
+---
+
+## PHẦN 0 — CHUYỂN DB RA NGOÀI THƯ MỤC DỰ ÁN (chỉ làm 1 lần)
+
+> Thực hiện nếu VPS hiện đang để DB trong thư mục dự án (`giaothong-app/giao_thong.db`).
+
+```bash
+# 1. Tạo thư mục data
+mkdir -p /home/giaothong/data
+
+# 2. Chuyển DB sang thư mục mới
+cp /home/giaothong/giaothong-app/giao_thong.db /home/giaothong/data/giao_thong.db
+
+# 3. Xác nhận file đã copy đúng (kiểm tra dung lượng tương đương)
+ls -lh /home/giaothong/data/
+
+# 4. Sửa DB_PATH trong .env
+nano /home/giaothong/giaothong-app/.env
+# Đổi dòng: DB_PATH=giao_thong.db
+# Thành:    DB_PATH=/home/giaothong/data/giao_thong.db
+
+# 5. Restart service và kiểm tra
+sudo systemctl restart giaothong
+sudo systemctl status giaothong
+```
+
+> Sau khi xác nhận service chạy bình thường, có thể xóa DB cũ trong thư mục dự án:
+> ```bash
+> rm /home/giaothong/giaothong-app/giao_thong.db
+> ```
 
 ---
 
@@ -29,19 +66,25 @@
 ssh giaothong@<IP_VPS>
 ```
 
-### Bước 2 — Dừng service (nếu đang chạy)
+### Bước 2 — Tạo thư mục dữ liệu (nếu chưa có)
+
+```bash
+mkdir -p /home/giaothong/data
+```
+
+### Bước 3 — Dừng service (nếu đang chạy)
 
 ```bash
 sudo systemctl stop giaothong
 ```
 
-### Bước 3 — Sao lưu DB trước khi làm gì (quan trọng!)
+### Bước 4 — Sao lưu DB (quan trọng!)
 
 ```bash
-cp /home/giaothong/giaothong-app/giao_thong.db /home/giaothong/giao_thong_backup_$(date +%Y%m%d).db
+cp /home/giaothong/data/giao_thong.db /home/giaothong/data/giao_thong_backup_$(date +%Y%m%d).db
 ```
 
-### Bước 4 — Xóa thư mục cũ và clone mới
+### Bước 5 — Xóa thư mục dự án cũ và clone mới
 
 ```bash
 cd /home/giaothong
@@ -50,7 +93,9 @@ git clone -b main https://github.com/MrVHThanh/Quan_ly_giao_thong.git giaothong-
 cd giaothong-app
 ```
 
-### Bước 5 — Tạo môi trường ảo và cài dependencies
+> DB **không bị xóa** vì nằm tại `/home/giaothong/data/`, ngoài thư mục dự án.
+
+### Bước 6 — Tạo môi trường ảo và cài dependencies
 
 ```bash
 python3 -m venv venv
@@ -58,7 +103,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Bước 6 — Tạo file `.env`
+### Bước 7 — Tạo file `.env`
 
 ```bash
 nano .env
@@ -68,7 +113,7 @@ Nội dung file `.env`:
 ```env
 SESSION_SECRET=<chuỗi ngẫu nhiên 64 ký tự>
 DEBUG=false
-DB_PATH=giao_thong.db
+DB_PATH=/home/giaothong/data/giao_thong.db
 ALLOWED_ORIGINS=https://<domain_hoac_IP_VPS>
 ```
 
@@ -76,12 +121,6 @@ ALLOWED_ORIGINS=https://<domain_hoac_IP_VPS>
 > ```bash
 > python3 -c "import secrets; print(secrets.token_hex(32))"
 > ```
-
-### Bước 7 — Khôi phục DB từ backup
-
-```bash
-cp /home/giaothong/giao_thong_backup_<ngày>.db /home/giaothong/giaothong-app/giao_thong.db
-```
 
 ### Bước 8 — Chạy migration
 
@@ -181,6 +220,32 @@ sudo systemctl restart giaothong && sudo systemctl status giaothong
 
 ---
 
+## CẤU HÌNH DB_PATH THEO MÔI TRƯỜNG
+
+| Môi trường | `DB_PATH` trong `.env` | Ghi chú |
+|---|---|---|
+| **Local (máy phát triển)** | `DB_PATH=giao_thong.db` | Đường dẫn tương đối, DB trong thư mục dự án |
+| **VPS (production)** | `DB_PATH=/home/giaothong/data/giao_thong.db` | Đường dẫn tuyệt đối, DB ngoài thư mục dự án |
+
+> File `.env` được gitignore — mỗi môi trường tự cấu hình riêng, không ảnh hưởng nhau.
+
+---
+
+## BACKUP DB ĐỊNH KỲ
+
+```bash
+# Backup thủ công
+cp /home/giaothong/data/giao_thong.db /home/giaothong/data/giao_thong_backup_$(date +%Y%m%d_%H%M).db
+
+# Xem danh sách backup
+ls -lh /home/giaothong/data/
+
+# Xóa backup cũ hơn 30 ngày (tùy chọn)
+find /home/giaothong/data/ -name "giao_thong_backup_*.db" -mtime +30 -delete
+```
+
+---
+
 ## QUẢN LÝ PHIÊN BẢN (Version)
 
 ### Tạo phiên bản mới
@@ -225,7 +290,8 @@ sudo systemctl restart giaothong
 | Thông tin người dùng không đổi | Session cũ | Đăng xuất → đăng nhập lại |
 | Service không start | Lỗi code Python | Chạy `sudo journalctl -u giaothong -n 50` |
 | `Migration OK` không in ra | Lỗi import | Kiểm tra tên file migration |
-| Mất dữ liệu sau clone | Quên khôi phục DB | Restore từ file backup |
+| `unable to open database` | DB_PATH sai trong `.env` | Kiểm tra đường dẫn tuyệt đối trong `.env` |
+| Mất dữ liệu sau clone | DB vẫn trong thư mục dự án | Thực hiện PHẦN 0 để chuyển DB ra ngoài |
 
 ---
 
