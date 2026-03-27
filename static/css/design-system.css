@@ -37,10 +37,10 @@
   --color-bg-hover:       #f8fafc;   /* Hover row bảng */
   --color-border:         #e2e8f0;   /* Đường kẻ */
   --color-border-strong:  #cbd5e0;
-  --color-text-primary:   #1a202c;   /* Chữ chính */
-  --color-text-secondary: #4a5568;   /* Chữ phụ */
-  --color-text-muted:     #718096;   /* Chữ mờ */
-  --color-text-disabled:  #a0aec0;
+  --color-text-primary:   #0f172a;   /* Chữ chính — đậm hơn */
+  --color-text-secondary: #334155;   /* Chữ phụ — tăng tương phản */
+  --color-text-muted:     #475569;   /* Chữ mờ — tăng tương phản */
+  --color-text-disabled:  #64748b;   /* Disabled — vẫn đọc được */
 
   /* ── Typography ── */
   --font-family-base:     'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;

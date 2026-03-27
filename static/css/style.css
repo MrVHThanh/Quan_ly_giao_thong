@@ -2,6 +2,15 @@
    Phụ thuộc: design-system.css phải được load trước
 */
 
+/* Ghi đè Bootstrap text-muted để đủ tương phản trên mobile */
+.text-muted { color: var(--color-text-muted) !important; }
+.small, small { color: inherit; }
+@media (max-width: 768px) {
+  body { color: var(--color-text-primary); }
+  .text-muted { color: var(--color-text-secondary) !important; }
+  td, th, label, .form-label, .form-text { color: var(--color-text-primary); }
+}
+
 /* ═══════════════════════════════════════════════════════
    1. SIDEBAR
 ═══════════════════════════════════════════════════════ */
