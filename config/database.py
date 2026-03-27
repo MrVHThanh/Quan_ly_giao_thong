@@ -24,10 +24,13 @@ Thứ tự bảng (theo phụ thuộc khóa ngoại):
 import sqlite3
 import os
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ── Đường dẫn mặc định ─────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH_DEFAULT = os.path.join(BASE_DIR, "giao_thong.db")
+DB_PATH_DEFAULT = os.environ.get("DB_PATH") or os.path.join(BASE_DIR, "giao_thong.db")
 
 
 # ── Kết nối ────────────────────────────────────────────────────────────────
