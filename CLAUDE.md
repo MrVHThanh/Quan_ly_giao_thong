@@ -2,7 +2,7 @@
 
 > File này là **nguồn tham chiếu chính** cho Claude Code khi làm việc trong dự án.
 > Đọc toàn bộ file này trước khi bắt đầu bất kỳ tác vụ nào.
-> Cập nhật lần cuối: 2026-03-27
+> Cập nhật lần cuối: 2026-03-29
 
 ---
 
@@ -376,6 +376,8 @@ cp file.geojson data/geojson/TENTUYEN.geojson
 | Chạy migration DB | `migrate.py` |
 | Xem nhật ký hệ thống | `/he-thong/nhat-ky` (ADMIN) |
 | Deploy production | `gunicorn.conf.py` · `deploy/nginx.conf` · `deploy/giaothong.service` |
+| Bảo mật VPS | `deploy/BAO_MAT_VPS.md` |
+| CI/CD tự động | `.github/workflows/deploy.yml` |
 | Xem kiến trúc chi tiết | `ARCHITECTURE.md` |
 | Xem bản đồ file | `PROJECT_MAP.md` |
 

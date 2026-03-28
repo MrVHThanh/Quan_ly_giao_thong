@@ -6,6 +6,27 @@ Versioning theo [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v1.0.3] — 2026-03-29
+
+### Thêm mới
+- Gắn tên miền `soxaydunglaocai.vn`, cài SSL Let's Encrypt (tự động gia hạn)
+- Favicon logo Sở Xây dựng Lào Cai hiển thị trên tab trình duyệt
+- GitHub Actions tự động deploy lên VPS khi push vào nhánh `main`
+- `deploy/BAO_MAT_VPS.md` — tài liệu ghi lại toàn bộ các bước bảo mật VPS
+
+### Cải thiện
+- `deploy/nginx.conf`: gắn domain thực tế, sửa đường dẫn static, thêm HSTS/security headers, ẩn phiên bản Nginx
+- `deploy/HUONG_DAN_DEPLOY_VPS.md`: thêm Phần 3 (gắn tên miền + SSL) và Phần 4 (bảo mật UFW/Fail2ban/backup)
+
+### Bảo mật
+- UFW firewall: chỉ mở port 22/80/443, chặn tất cả còn lại
+- Fail2ban: tự động ban IP brute force SSH
+- HSTS: bắt buộc HTTPS trong 1 năm
+- Backup DB tự động 2h sáng hàng ngày, giữ 30 bản gần nhất
+- `DEBUG=false`, `ALLOWED_ORIGINS=https://soxaydunglaocai.vn` trên production
+
+---
+
 ## [v1.0.2] — 2026-03-27
 
 ### Thêm mới

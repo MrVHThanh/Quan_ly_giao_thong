@@ -315,13 +315,27 @@ Shared limiter — import vào bất kỳ route nào cần rate limit.
 
 ---
 
+## .github/ — CI/CD
+
+| File | Mô tả |
+|---|---|
+| `.github/workflows/deploy.yml` | GitHub Actions: tự động SSH vào VPS, pull code, migrate, restart service khi push vào `main` |
+
+**Secrets cần cấu hình trên GitHub repo:**
+- `VPS_HOST` — IP VPS (`171.244.140.146`)
+- `VPS_USER` — user SSH (`giaothong`)
+- `VPS_SSH_KEY` — private key SSH (tạo bằng `ssh-keygen -t ed25519`)
+
+---
+
 ## deploy/ — Cấu hình Production
 
 | File | Mô tả |
 |---|---|
-| `deploy/nginx.conf` | Nginx: HTTP→HTTPS redirect, SSL termination, proxy_pass 127.0.0.1:8000, serve /static |
+| `deploy/nginx.conf` | Nginx: HTTP→HTTPS redirect (soxaydunglaocai.vn), SSL Let's Encrypt, security headers, HSTS |
 | `deploy/giaothong.service` | systemd unit: EnvironmentFile, ExecStart gunicorn, Restart=on-failure |
-| `deploy/HUONG_DAN_DEPLOY_VPS.md` | Hướng dẫn deploy đầy đủ: Clone mới, Cập nhật, Backup DB, Rollback |
+| `deploy/HUONG_DAN_DEPLOY_VPS.md` | Hướng dẫn deploy: Clone mới, Cập nhật, Gắn tên miền+SSL, Bảo mật UFW/Fail2ban, Backup DB |
+| `deploy/BAO_MAT_VPS.md` | Tài liệu chi tiết các bước bảo mật VPS đã thực hiện (2026-03-29) |
 | `gunicorn.conf.py` | bind="127.0.0.1:8000", workers=CPU×2+1, UvicornWorker, max_requests=1000 |
 
 **Vị trí DB trên VPS:** `/home/giaothong/data/giao_thong.db` — tách ngoài thư mục dự án, cấu hình qua `.env` `DB_PATH`.
