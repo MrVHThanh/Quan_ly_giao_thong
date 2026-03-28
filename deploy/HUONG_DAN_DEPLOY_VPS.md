@@ -304,3 +304,237 @@ sudo journalctl -u giaothong -n 50
 # Xem log realtime
 sudo journalctl -u giaothong -f
 ```
+
+---
+
+## PHẦN 3 — GẮN TÊN MIỀN VÀ CÀI SSL (chỉ làm 1 lần)
+
+> Thực hiện khi đã có tên miền trỏ về IP VPS.
+> Domain: `soxaydunglaocai.vn` — VPS IP: `171.244.140.146`
+
+### Bước 1 — Tro DNS tren trang quan ly ten mien
+
+Dang nhap trang quan ly ten mien, tao 2 ban ghi A:
+
+| Type | Host | Value | TTL |
+|---|---|---|---|
+| A | `@` (hoac `soxaydunglaocai.vn`) | `171.244.140.146` | 3600 |
+| A | `www` | `171.244.140.146` | 3600 |
+
+> Doi 5–30 phut de DNS lan truyen. Kiem tra bang:
+> ```bash
+> ping soxaydunglaocai.vn
+> # Ket qua phai hien IP: 171.244.140.146
+> ```
+
+### Bước 2 — Cài Certbot (Let's Encrypt)
+
+```bash
+sudo apt update
+sudo apt install -y certbot python3-certbot-nginx
+```
+
+### Bước 3 — Deploy nginx.conf mới với tên miền thực
+
+```bash
+# Copy file cau hinh moi len VPS
+sudo cp /home/giaothong/giaothong-app/deploy/nginx.conf /etc/nginx/sites-available/giaothong
+
+# Kiem tra cu phap nginx
+sudo nginx -t
+
+# Reload nginx
+sudo systemctl reload nginx
+```
+
+### Bước 4 — Cấp chứng chỉ SSL
+
+```bash
+sudo certbot --nginx -d soxaydunglaocai.vn -d www.soxaydunglaocai.vn
+```
+
+> Certbot se hoi:
+> - Email de thong bao het han cert → nhap email thuc
+> - Dong y dieu khoan → nhap `Y`
+> - Redirect HTTP → HTTPS → chon `2` (Redirect)
+
+> Certbot **tu dong cap nhat** nginx.conf voi duong dan SSL. Kiem tra lai:
+> ```bash
+> sudo nginx -t && sudo systemctl reload nginx
+> ```
+
+### Bước 5 — Cập nhật file .env trên VPS
+
+```bash
+nano /home/giaothong/giaothong-app/.env
+```
+
+Sua cac dong sau:
+```env
+DEBUG=false
+ALLOWED_ORIGINS=https://soxaydunglaocai.vn
+```
+
+Khoi dong lai service:
+```bash
+sudo systemctl restart giaothong
+```
+
+### Bước 6 — Kiểm tra chứng chỉ tự động gia hạn
+
+```bash
+# Kiem tra timer tu dong gia han
+sudo systemctl status certbot.timer
+
+# Thu gia han (khong thay doi cert that)
+sudo certbot renew --dry-run
+```
+
+> Certbot tu dong gia han moi 90 ngay qua systemd timer — khong can lam thu cong.
+
+### Bước 7 — Kiểm tra tổng thể
+
+```bash
+# Kiem tra HTTPS
+curl -I https://soxaydunglaocai.vn
+
+# Ket qua mong doi:
+# HTTP/2 200
+# strict-transport-security: max-age=31536000...
+```
+
+---
+
+## PHẦN 4 — BẢO MẬT VPS
+
+### 4.1 — Cấu hình Firewall (UFW)
+
+```bash
+# Cai UFW neu chua co
+sudo apt install -y ufw
+
+# Mac dinh: chan het
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Chi mo 3 cong can thiet
+sudo ufw allow 22/tcp     # SSH
+sudo ufw allow 80/tcp     # HTTP (de certbot va redirect)
+sudo ufw allow 443/tcp    # HTTPS
+
+# Bat firewall
+sudo ufw enable
+
+# Kiem tra trang thai
+sudo ufw status verbose
+```
+
+> **Luu y:** Dam bao port 22 da mo TRUOC khi bat `ufw enable`, neu khong bi mat ket noi SSH.
+
+### 4.2 — Cài Fail2ban (chống brute force)
+
+```bash
+# Cai dat
+sudo apt install -y fail2ban
+
+# Tao file cau hinh local (khong chinh sua file goc)
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sudo nano /etc/fail2ban/jail.local
+```
+
+Tim va sua cac dong sau trong `[DEFAULT]`:
+```ini
+bantime  = 3600      # Ban 1 gio
+findtime = 600       # Trong 10 phut
+maxretry = 5         # Cho phep 5 lan that bai
+```
+
+Bat va kiem tra:
+```bash
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
+```
+
+### 4.3 — Giới hạn truy cập SSH (tùy chọn nâng cao)
+
+```bash
+# Xem ai dang dang nhap
+who
+
+# Kiem tra cac lan dang nhap that bai gan day
+sudo grep "Failed password" /var/log/auth.log | tail -20
+
+# Doi port SSH (tuy chon — neu doi, phai them ufw allow <port>/tcp)
+# sudo nano /etc/ssh/sshd_config
+# Doi: Port 22 → Port <so_khac>
+# sudo systemctl restart sshd
+```
+
+### 4.4 — Kiểm tra bảo mật tổng thể
+
+```bash
+# Kiem tra port dang mo
+sudo ss -tlnp
+
+# Ket qua mong doi chi thay:
+# :22  (SSH)
+# :80  (Nginx HTTP)
+# :443 (Nginx HTTPS)
+# :8000 ONLY 127.0.0.1 (Gunicorn — khong expose ra ngoai)
+
+# Kiem tra Gunicorn khong expose ra ngoai internet
+sudo ss -tlnp | grep 8000
+# Phai hien: 127.0.0.1:8000 — KHONG duoc la 0.0.0.0:8000
+```
+
+### 4.5 — Backup DB tự động hàng ngày
+
+```bash
+# Tao script backup
+sudo nano /home/giaothong/backup_db.sh
+```
+
+Noi dung file:
+```bash
+#!/bin/bash
+BACKUP_DIR="/home/giaothong/data/backups"
+DB_FILE="/home/giaothong/data/giao_thong.db"
+DATE=$(date +%Y%m%d_%H%M)
+mkdir -p "$BACKUP_DIR"
+cp "$DB_FILE" "$BACKUP_DIR/giao_thong_$DATE.db"
+# Giu lai 30 ban backup gan nhat
+ls -t "$BACKUP_DIR"/giao_thong_*.db | tail -n +31 | xargs -r rm
+```
+
+```bash
+# Phan quyen va cai cron
+chmod +x /home/giaothong/backup_db.sh
+
+# Them vao crontab — chay 2h sang moi ngay
+crontab -e
+# Them dong:
+# 0 2 * * * /home/giaothong/backup_db.sh
+```
+
+---
+
+## CHECKLIST SAU KHI GẮN TÊN MIỀN
+
+```
+[ ] DNS A record tro ve 171.244.140.146 (ca @ va www)
+[ ] ping soxaydunglaocai.vn → hien IP VPS
+[ ] nginx.conf da copy len /etc/nginx/sites-available/giaothong
+[ ] sudo nginx -t → OK
+[ ] Certbot cap cert thanh cong
+[ ] https://soxaydunglaocai.vn mo duoc, o khoa xanh
+[ ] http://soxaydunglaocai.vn tu dong redirect sang https
+[ ] www.soxaydunglaocai.vn redirect ve soxaydunglaocai.vn
+[ ] .env: DEBUG=false, ALLOWED_ORIGINS=https://soxaydunglaocai.vn
+[ ] sudo systemctl restart giaothong → Active: running
+[ ] UFW bat va chi cho 22/80/443
+[ ] Fail2ban dang chay
+[ ] sudo certbot renew --dry-run → OK
+[ ] Backup DB tu dong da cai crontab
+```
